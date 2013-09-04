@@ -23,6 +23,8 @@ exit_if_fail () {
     fi
 }
 
+cat onix.nfo
+
 echo "Running unit tests"
 
 lein midje :filter unit
