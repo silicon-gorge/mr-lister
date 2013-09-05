@@ -26,11 +26,9 @@
 
 (defn list-applications
   []
-  (dynamo/lazy-scan applications-table {:conditions {} :attributes_to_get ["name"]} @dynamo-client)
-  ;; (dynamo/with-client
-  ;;   @dynamo-client
-  ;;   (dynamo/query applications-table {}))
-  )
+  {:applications
+   (map :name (dynamo/lazy-scan applications-table {:conditions {} :attributes_to_get ["name"]} @dynamo-client))}
+ )
 
 (defn dynamo-health-check
   "Checks that we can talk to Dynamo and get a description of one of our tables."
@@ -42,15 +40,3 @@
     true
     (catch AmazonServiceException e (warn e "AWS Dynamo service error") nil)
     (catch AmazonClientException e (warn e "AWS Dynamo client error") nil)))
-
-(dynamo/lazy-scan applications-table {:conditions {} :attributes_to_get ["name"]} @dynamo-client)
-
-
-;; (defn scan-dynamo
-;;   [entity-type table attribute]
-;;   (dynamo/lazy-scan table {:conditions {"entityType" (dynamo/create-condition :EQ entity-type)} :attributes_to_get [attribute]} @dynamo-client))
-
-
-;; (defn scan-entities
-;;   [entity-type]
-;;   (scan-dynamo entity-type (dynamo-entity-table) "entityId"))
