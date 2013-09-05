@@ -1,45 +1,56 @@
 (defproject onix "1.0.0-SNAPSHOT"
   :description "Onix service"
   :url "http://wikis.in.nokia.com/NokiaMusicArchitecture/Onix"
-  :dependencies [[org.clojure/clojure "1.4.0"]
-                 [compojure "1.1.3" :exclusions [javax.servlet/servlet-api]]
-                 [ring-middleware-format "0.3.0"]
-                 [org.clojure/data.xml "0.0.7"]
-                 [org.clojure/data.json "0.2.1"]
-                 [org.clojure/data.zip "0.1.1"]
-                 [org.clojure/tools.logging "0.2.3"]
-                 [org.slf4j/slf4j-api "1.6.4"]
-                 [org.slf4j/jul-to-slf4j "1.6.0"]
-                 [ch.qos.logback/logback-classic "1.0.3"]
-                 [com.ovi.common.logging/logback-appender "0.0.32"]
-                 [com.yammer.metrics/metrics-logback "2.1.1"]
-                 [com.ovi.common.metrics/metrics-graphite "2.1.12"]
-                 [clj-http "0.5.3"]
-                 [cheshire "5.0.2"]
-                 [clj-time "0.4.4"]
-                 [environ "0.4.0"]
-                 [nokia/ring-utils "1.0.0"]
-                 [metrics-clojure "1.0.1"]
-                 [metrics-clojure-ring "1.0.1"]]
 
-  :profiles {:dev {:dependencies [[com.github.rest-driver/rest-client-driver "1.1.28"
-                                   :exclusions [org.slf4j/slf4j-nop javax.servlet/servlet-api]]
-                                  [junit "4.10"]
+  :dependencies [[compojure "1.1.5" :exclusions [javax.servlet/servlet-api]]
+                 [ring-middleware-format "0.3.1"]
+                 [ring/ring-jetty-adapter "1.2.0"]
+                 [org.clojure/clojure "1.5.1"]
+                 [org.clojure/data.json "0.2.3"]
+                 [org.clojure/data.xml "0.0.7"]
+                 [org.clojure/data.zip "0.1.1"]
+                 [org.clojure/tools.logging "0.2.6"]
+                 [org.slf4j/slf4j-api "1.7.5"]
+                 [org.slf4j/jul-to-slf4j "1.7.5"]
+                 [ch.qos.logback/logback-classic "1.0.13"]
+                 [com.ovi.common.logging/logback-appender "0.0.45"]
+                 [com.yammer.metrics/metrics-logback "2.2.0"]
+                 [com.ovi.common.metrics/metrics-graphite "2.1.21"]
+                 [clj-http "0.7.6"]
+                 [cheshire "5.2.0"]
+                 [clj-time "0.6.0"]
+                 [environ "0.4.0"]
+                 [nokia/ring-utils "1.0.1"]
+                 [metrics-clojure "1.0.1"]
+                 [metrics-clojure-ring "1.0.1"]
+                 [com.amazonaws/aws-java-sdk "1.5.5"]]
+
+  :profiles {:dev {:dependencies [[com.github.rest-driver/rest-client-driver "1.1.32"
+                                   :exclusions [org.slf4j/slf4j-nop
+                                                javax.servlet/servlet-api
+                                                org.eclipse.jetty.orbit/javax.servlet]]
                                   [clj-http-fake "0.4.1"]
-                                  [rest-cljer "0.1.7"]
-                                  [midje "1.5.1"]]
+                                  [junit "4.11"]
+                                  [midje "1.5.1"]
+                                  [rest-cljer "0.1.7"]]
                    :plugins [[lein-rpm "0.0.4"]
                              [lein-midje "3.0.1"]
-                             [jonase/kibit "0.0.4"]]}}
-  :plugins [[lein-ring "0.8.5"]
+                             [jonase/kibit "0.0.8"]]}}
+
+  :plugins [[lein-ring "0.8.6"]
             [lein-environ "0.4.0"]
             [lein-release "1.0.73"]]
 
   ;; development token values
-  :env {
+  :env {:aws-access-key ~(get (System/getenv) "AMAZON_SECRET_ID" "dummytestkey")
+        :aws-secret-key ~(get (System/getenv) "AMAZON_SECRET_ACCESS_KEY" "dummysecretkey")
+        :aws-http-proxy-host "nokes.nokia.com"
+        :aws-http-proxy-port "8080"
+        :dynamo-endpoint "http://dynamodb.eu-west-1.amazonaws.com"
+
         :environment-name "Dev"
-        :service-name onix
-        :service-port "3000"
+        :service-name "onix"
+        :service-port "8080"
         :service-url "http://localhost:%s/1.x"
         :restdriver-port "8081"
         :environment-entertainment-graphite-host "graphite.brislabs.com"
@@ -47,15 +58,14 @@
         :service-graphite-post-interval "1"
         :service-graphite-post-unit "MINUTES"
         :service-graphite-enabled "ENABLED"
-        :service-production "false"
-        }
+        :service-production "false"}
 
   :lein-release {:release-tasks [:clean :uberjar :pom :rpm]
                  :clojars-url "clojars@clojars.brislabs.com:"}
 
   :ring {:handler onix.web/app
          :main onix.setup
-         :port ~(Integer.  (get (System/getenv) "SERVICE_PORT" "3000"))
+         :port ~(Integer.  (get (System/getenv) "SERVICE_PORT" "8080"))
          :init onix.setup/setup
          :browser-uri "/1.x/status"}
 
