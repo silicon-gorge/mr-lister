@@ -26,9 +26,10 @@
 
 (defn list-applications
   []
-  (dynamo/with-client
-    @dynamo-client
-    (dynamo/query applications-table {}))
+  (dynamo/lazy-scan applications-table {:conditions {} :attributes_to_get ["name"]} @dynamo-client)
+  ;; (dynamo/with-client
+  ;;   @dynamo-client
+  ;;   (dynamo/query applications-table {}))
   )
 
 (defn dynamo-health-check
@@ -42,4 +43,14 @@
     (catch AmazonServiceException e (warn e "AWS Dynamo service error") nil)
     (catch AmazonClientException e (warn e "AWS Dynamo client error") nil)))
 
-(create-application {:name "magenta"})
+(dynamo/lazy-scan applications-table {:conditions {} :attributes_to_get ["name"]} @dynamo-client)
+
+
+;; (defn scan-dynamo
+;;   [entity-type table attribute]
+;;   (dynamo/lazy-scan table {:conditions {"entityType" (dynamo/create-condition :EQ entity-type)} :attributes_to_get [attribute]} @dynamo-client))
+
+
+;; (defn scan-entities
+;;   [entity-type]
+;;   (scan-dynamo entity-type (dynamo-entity-table) "entityId"))

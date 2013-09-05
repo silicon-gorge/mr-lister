@@ -46,7 +46,10 @@
 
 (defn- list-applications
   []
-  (prn "LIST APPLICATIONS"))
+  (->
+   (persistence/list-applications)
+   (cheshire/generate-string)
+   (response json-content-type)))
 
 (defroutes applications-routes
 
