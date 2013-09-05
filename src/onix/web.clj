@@ -1,5 +1,7 @@
 (ns onix.web
-    (:require [compojure.core :refer [defroutes context GET PUT POST DELETE]]
+  (:require [onix.persistence :as persistence])
+  (:require   [cheshire.core :as cheshire]
+              [compojure.core :refer [defroutes context GET PUT POST DELETE]]
               [compojure.route :as route]
               [compojure.handler :as handler]
               [ring.middleware.format-response :refer [wrap-json-response]]
@@ -15,6 +17,9 @@
               [nokia.ring-utils.ignore-trailing-slash :refer [wrap-ignore-trailing-slash]]
               [metrics.ring.expose :refer [expose-metrics-as-json]]
               [metrics.ring.instrument :refer [instrument]]))
+
+
+(def json-content-type "application/json;charset=UTF-8")
 
 (def ^:dynamic *version* "none")
 (defn set-version! [version]
@@ -33,6 +38,24 @@
                                 :version *version*
                                 :success true}))})
 
+(defn- create-application
+  [req]
+  (let [body (cheshire/parse-string (slurp (:body req)))
+        result (persistence/create-application body)]
+    (response (cheshire/generate-string body) json-content-type 201)))
+
+(defn- list-applications
+  []
+  (prn "LIST APPLICATIONS"))
+
+(defroutes applications-routes
+
+  (POST "/" req
+        (create-application req))
+
+  (GET "/" []
+       (list-applications)))
+
 (defroutes routes
   (context
    "/1.x" []
@@ -41,10 +64,12 @@
         [] "pong")
 
    (GET "/status"
-        [] (status)))
+        [] (status))
+
+   (context "/applications"
+            [] applications-routes))
 
   (route/not-found (error-response "Resource not found" 404)))
-
 
 (def app
   (-> routes
