@@ -1,6 +1,7 @@
 (ns onix.aws-common
   (:require
-   [environ.core :refer [env]])
+   [environ.core :refer [env]]
+   [clojure.string :refer [blank?]])
   (:import
    (java.util UUID)
    (com.amazonaws ClientConfiguration)))
@@ -14,10 +15,14 @@
 (def amazon-client-config
   "Creates the client configuration, used to add a proxy if required (eg. when running in NOE.)"
   (delay
-    (let [configuration (ClientConfiguration.)]
-      (when-let [proxy-host (env :aws-http-proxy-host)]
+   (let [configuration (ClientConfiguration.)
+         proxy-host (env :aws-http-proxy-host)
+         proxy-port (env :aws-http-proxy-port)]
+     (when (and (not (blank? proxy-host))
+                (not (blank? proxy-port)))
+       (prn "SETTING PROXY" proxy-host proxy-port)
         (.setProxyHost configuration proxy-host)
-        (.setProxyPort configuration (Integer/valueOf (env :aws-http-proxy-port))))
+        (.setProxyPort configuration (Integer/valueOf proxy-port)))
       configuration)))
 
 (defn add-credentials
@@ -27,6 +32,8 @@
   []
   (let [sysprops (System/getProperties)]
     (when-let [access-key (env :aws-access-key)]
+      (prn "AWS SECRET KEY" (env :aws-access-key))
       (.put sysprops "aws.accessKeyId" access-key))
     (when-let [secret-key (env :aws-secret-key)]
+      (prn "AWS SECRET VALUE" (env :aws-secret-key))
       (.put sysprops "aws.secretKey" secret-key))))

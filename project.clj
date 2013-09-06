@@ -41,9 +41,9 @@
             [lein-environ "0.4.0"]
             [lein-release "1.0.73"]]
 
-  ;; development token values
-  :env {:aws-access-key ~(get (System/getenv) "AMAZON_SECRET_ID" "dummytestkey")
-        :aws-secret-key ~(get (System/getenv) "AMAZON_SECRET_ACCESS_KEY" "dummysecretkey")
+  ;; development token values (settings correct for integrating with our AWS entdev environment).
+  :env {:aws-access-key nil ; for local dev, you need to have your own AWS credentials set up.
+        :aws-secret-key nil
         :aws-http-proxy-host "nokes.nokia.com"
         :aws-http-proxy-port "8080"
         :dynamo-endpoint "http://dynamodb.eu-west-1.amazonaws.com"
