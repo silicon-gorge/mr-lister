@@ -1,4 +1,4 @@
-(defproject onix "1.0.3-SNAPSHOT"
+(defproject onix "1.0.4-SNAPSHOT"
   :description "Onix service"
   :url "http://wikis.in.nokia.com/NokiaMusicArchitecture/Onix"
 
@@ -74,9 +74,9 @@
                  "rm.brislabs.com"
                  "http://rm.brislabs.com/nexus/content/groups/all-releases"}
 
-  :uberjar-name "Onix.jar"
+  :uberjar-name "onix.jar"
 
-  :rpm {:name "Onix1"
+  :rpm {:name "onix1"
         :summary "RPM for Onix service"
         :copyright "Nokia 2013"
         :preinstall {:scriptFile "scripts/rpm/preinstall.sh"}
@@ -88,13 +88,13 @@
                     :filemode "444"
                     :username "jetty"
                     :groupname "jetty"
-                    :sources {:source [{:location "target/Onix.jar"}]}}
+                    :sources {:source [{:location "target/onix.jar"}]}}
                    {:directory "/usr/local/jetty/bin"
                     :filemode "744"
                     :username "jetty"
                     :groupname "jetty"
                     :sources {:source [{:location "scripts/bin"}]}}
-                   {:directory "/usr/local/deployment/Onix1/bin"
+                   {:directory "/usr/local/deployment/onix1/bin"
                     :filemode "744"
                     :sources {:source [{:location "scripts/dmt"}]}}
                    {:directory "/etc/rc.d/init.d"

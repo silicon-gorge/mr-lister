@@ -1,6 +1,6 @@
 #!/bin/sh
 
-PIDS=$(pgrep java -lf | grep Onix | cut -d" " -f1);
+PIDS=$(pgrep java -lf | grep onix | cut -d" " -f1);
 
 if [ -n "$PIDS" ]
 then
