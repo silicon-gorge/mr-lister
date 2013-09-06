@@ -84,8 +84,6 @@
      (cheshire/generate-string)
      (response json-content-type))))
 
-(status)
-
 (defn- create-application
   [req]
   (let [body (cheshire/parse-string (slurp (:body req)))
