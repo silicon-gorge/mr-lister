@@ -38,5 +38,5 @@
       @dynamo-client
       (dynamo/describe-table applications-table))
     true
-    (catch AmazonServiceException e (warn e "AWS Dynamo service error") nil)
-    (catch AmazonClientException e (warn e "AWS Dynamo client error") nil)))
+    (catch AmazonServiceException e (warn e "AWS Dynamo service error") false)
+    (catch AmazonClientException e (warn e "AWS Dynamo client error") false)))

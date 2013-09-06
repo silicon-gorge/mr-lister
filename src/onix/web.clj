@@ -75,11 +75,16 @@
 
 (defn status
   []
-  {:headers {"Content-Type" "application/xml"}
-   :body    (emit-str (element :status
-                               {:serviceName "onix"
-                                :version *version*
-                                :success true}))})
+  (let [dynamo-ok (persistence/dynamo-health-check)]
+    (->
+     {:name "onix"
+      :version *version*
+      :success dynamo-ok
+      :dependencies [{:name "dynamodb" :success dynamo-ok}]}
+     (cheshire/generate-string)
+     (response json-content-type))))
+
+(status)
 
 (defn- create-application
   [req]
