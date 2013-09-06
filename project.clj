@@ -88,13 +88,13 @@
                     :filemode "444"
                     :username "jetty"
                     :groupname "jetty"
-                    :sources {:source [{:location "target/Onix.jar"}]}}
+                    :sources {:source [{:location "target/onix.jar"}]}}
                    {:directory "/usr/local/jetty/bin"
                     :filemode "744"
                     :username "jetty"
                     :groupname "jetty"
                     :sources {:source [{:location "scripts/bin"}]}}
-                   {:directory "/usr/local/deployment/Onix1/bin"
+                   {:directory "/usr/local/deployment/onix1/bin"
                     :filemode "744"
                     :sources {:source [{:location "scripts/dmt"}]}}
                    {:directory "/etc/rc.d/init.d"
