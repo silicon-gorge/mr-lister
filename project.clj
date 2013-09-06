@@ -74,9 +74,9 @@
                  "rm.brislabs.com"
                  "http://rm.brislabs.com/nexus/content/groups/all-releases"}
 
-  :uberjar-name "Onix.jar"
+  :uberjar-name "onix.jar"
 
-  :rpm {:name "Onix1"
+  :rpm {:name "onix1"
         :summary "RPM for Onix service"
         :copyright "Nokia 2013"
         :preinstall {:scriptFile "scripts/rpm/preinstall.sh"}
