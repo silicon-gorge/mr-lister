@@ -73,6 +73,11 @@
    :headers {"Content-Type" content-type}
    :body data})
 
+;(defn error-response
+;  [msg & [status]]
+;  (let [s (or status 404)]
+;    {:status s :body (cheshire/generate-string {:message msg :status s}) :headers headers}))
+
 (defn status
   []
   (let [dynamo-ok (persistence/dynamo-health-check)]
@@ -97,13 +102,26 @@
    (cheshire/generate-string)
    (response json-content-type)))
 
+(defn- get-application
+  "Returns the application with the given name, or '404' if it doesn't exist."
+  [application-name]
+  (if-let [application (persistence/get-application application-name)]
+    (->
+      application
+      (cheshire/generate-string)
+      (response json-content-type))
+    (error-response (str "Application named: '" application-name "' does not exist") 404)))
+
 (defroutes applications-routes
 
   (POST "/" req
         (create-application req))
 
   (GET "/" []
-       (list-applications)))
+       (list-applications))
+  
+  (GET "/:application" [application]
+       (get-application application)))
 
 (defroutes routes
   (context

@@ -22,14 +22,19 @@
   [application]
   (dynamo/with-client
     @dynamo-client
-    (dynamo/put-item applications-table application))
-  )
+    (dynamo/put-item applications-table application)))
 
 (defn list-applications
   []
   {:applications
-   (map :name (dynamo/lazy-scan applications-table {:conditions {} :attributes_to_get ["name"]} @dynamo-client))}
- )
+   (map :name (dynamo/lazy-scan applications-table {:conditions {} :attributes_to_get ["name"]} @dynamo-client))})
+
+(defn get-application
+  "Fetches the data for the application with the given name."
+  [application-name]
+  (dynamo/with-client
+    @dynamo-client
+    (dynamo/get-item applications-table {:hash_key application-name})))
 
 (defn dynamo-health-check
   "Checks that we can talk to Dynamo and get a description of one of our tables."

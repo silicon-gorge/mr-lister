@@ -33,7 +33,7 @@
                                   [junit "4.11"]
                                   [midje "1.5.1"]
                                   [rest-cljer "0.1.7"]]
-                   :plugins [[lein-rpm "0.0.4"]
+                   :plugins [[lein-rpm "0.0.5"]
                              [lein-midje "3.0.1"]
                              [jonase/kibit "0.0.8"]]}}
 
@@ -60,6 +60,12 @@
         :service-graphite-enabled "ENABLED"
         :service-production "false"}
 
+  :aliases { "autotest" ["midje" ":autotest" "src/onix" "test/onix" ":filter" "-slow"]
+             "autounit" ["midje" ":autotest" "src/onix" "test/onix/unit"]
+             "acceptance" ["midje" ":filter" "acceptance"]
+             "start" ["ring" "server-headless"]
+             "start-integration" ["with-profile" "integration" "ring" "server-headless"]}
+  
   :lein-release {:release-tasks [:clean :uberjar :pom :rpm]
                  :clojars-url "clojars@clojars.brislabs.com:"}
 
