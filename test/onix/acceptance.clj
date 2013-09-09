@@ -47,9 +47,8 @@
    :body (json/generate-string {:Table {:TableName table-name}})})
 
 (defn dynamo-error-response
-  [status]
-  {:status status
-   :content-type "application/x-amz-json-1.0"})
+  [& {:keys [status ex message]}]
+  {:status status :type "application/x-amz-json-1.0" :body (json/generate-string {:__type (str "com.amazonaws.dynamodb.v20111205#" ex) :message message })})
 
 (fact-group :acceptance
    (fact "Ping resource returns 200 HTTP response"
@@ -69,7 +68,7 @@
    (fact "Status returns false when dynamo gives 400 response, i.e. bad request, table doesn't exist"
          (rest-driven
           [(dynamo-request :table "onix-applications" :action "DescribeTable")
-           (dynamo-error-response 400)]
+           (dynamo-error-response :status 400 :ex "ConditionalCheckFailedException" :message "The conditional request failed")]
           (let [response (client/get (url+ "/status") {:throw-exceptions false})
                 body (read-body response)
                 success (:success body)]
@@ -79,9 +78,11 @@
    (fact "Status returns false when dynamo gives 500 response, I'm not working"
          (rest-driven
           [(dynamo-request :table "onix-applications" :action "DescribeTable")
-           (dynamo-error-response 500)]
+           (assoc (dynamo-error-response :status 500 :ex "InternalServerError" :message "The service is currently unavailable or busy.") :times 11)]
           (let [response (client/get (url+ "/status") {:throw-exceptions false})
                 body (read-body response)
                 success (:success body)]
             response => (contains {:status 200})
-            success => false))))
+            success => false)))
+
+   )
