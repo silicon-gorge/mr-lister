@@ -40,11 +40,30 @@
   [& {:keys [table key action] :or {key ""}}]
   (dynamo-request-build (re-pattern (format ".*%s.*%s.*" table key)) action))
 
+(dynamo-request-build (re-pattern (format ".*%s.*%s.*" "onix-applications" ".*")) "PutItem")
+
 (defn dynamo-describe-response
   [table-name]
-  {:content-type "application/x-amz-json-1.0"
+  {:content-type "application/x-amz-json- 1.0"
    :status 200
    :body (json/generate-string {:Table {:TableName table-name}})})
+
+(defn dynamo-scan-request
+  [& {:keys [table]}]
+  (dynamo-request-build (re-pattern (format ".*%s.*" table)) "Scan"))
+
+(defn dynamo-scan-response
+  [items]
+  {:type "application/x-amz-json-1.0"
+   :status 200
+   :body (json/generate-string {:ConsumedCapacityUnits 1
+                           :Count (count items)
+                           :Items items
+                           :ScannedCount (count items)})})
+
+(defn dynamo-put-response
+  []
+  {:type "application/x-amz-json-1.0" :status 200 :body "{\"ConsumedCapacityUnits\":0.5}"})
 
 (defn dynamo-error-response
   [& {:keys [status ex message]}]
@@ -75,6 +94,7 @@
             response => (contains {:status 200})
             success => false)))
 
+   ; Note that the dynamo client does several retries, hence :times 11 for the rest driver response.
    (fact "Status returns false when dynamo gives 500 response, I'm not working"
          (rest-driven
           [(dynamo-request :table "onix-applications" :action "DescribeTable")
@@ -85,4 +105,18 @@
             response => (contains {:status 200})
             success => false)))
 
-   )
+   (fact "Create application succeeds with correct input"
+         (rest-driven
+          [(dynamo-request :table "onix-applications" :action "PutItem")
+           (dynamo-put-response)]
+          (let [response (client/post (url+ "/applications") {:throw-exceptions false})
+                body (read-body response)]
+            response => (contains {:status 201}))))
+
+   (fact "List applications succeeds"
+         (rest-driven
+          [(dynamo-scan-request :table "onix-applications")
+           (dynamo-scan-response [{"name" {"S" "myapplication"}}])]
+          (let [response (client/get (url+ "/applications") {:throw-exceptions false})
+                body (read-body response)]
+            response => (contains {:status 200})))))
