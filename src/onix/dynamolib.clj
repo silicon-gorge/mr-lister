@@ -45,20 +45,16 @@
   "Create the AmazonDynamoDBClient"
   [cred]
   (AmazonDynamoDBClient.
-    (BasicAWSCredentials. (:access_key cred) (:secret_key cred)))
-  )
+    (BasicAWSCredentials. (:access_key cred) (:secret_key cred))))
 
 (defn with-client*
   [client func]
   (binding [*ddb_client* client]
-    (func)
-    )
-  )
+    (func)))
 
 (defmacro with-client
   [client & body]
-  `(with-client* ~client (fn [] ~@body))
-  )
+  `(with-client* ~client (fn [] ~@body)))
 
 
 ;;Create an AttributeValue object from v
@@ -80,8 +76,7 @@
     (doto (AttributeValue.) (.setNS (map str v)))
 
     :else
-    (throw (Exception. "ddb sets must be all strings/numbers"))
-    ))
+    (throw (Exception. "ddb sets must be all strings/numbers"))))
 
 
 (defn- parse-number
@@ -120,8 +115,7 @@
       (Key. (create-attribute-value hash_key) (create-attribute-value range_key))
 
       hash_key
-      (Key. (create-attribute-value hash_key))
-      ))
+      (Key. (create-attribute-value hash_key))))
 
 (defn KeyObject->key [k]
   (when k
@@ -178,10 +172,7 @@
     (doto (CreateTableRequest.)
       (.setTableName (str name))
       (.setKeySchema (apply create-key-schema keys))
-      (.setProvisionedThroughput (create-provisioned-throughput throughput))
-      )
-    )
-  )
+      (.setProvisionedThroughput (create-provisioned-throughput throughput)))))
 
 (defn delete-table
   "Delete a table in DyanmoDB with the given name."
@@ -219,9 +210,7 @@
   [{exists :exists value :value}]
   (-> (ExpectedAttributeValue.)
     (doto-if (not (nil? exists)) (.setExists exists) )
-    (doto-if value (.setValue (create-attribute-value value)) )
-    )
-  )
+    (doto-if value (.setValue (create-attribute-value value)))))
 
 (defn prepare-expected-attribute-values
   "turns clojure-ish expected attributes into ExpectedAttributeValues
@@ -230,8 +219,7 @@
   [m]
   (->> m
     (map #(hash-map (name (key %)) (create-expected-attribute-value (val %))))
-    (reduce merge {}))
-  )
+    (reduce merge {})))
 
 
 
@@ -257,9 +245,7 @@
     (.putItem
       *ddb_client*
       (doto (PutItemRequest. table (prepare-map item))
-        (.setExpected (prepare-expected-attribute-values expected))
-        )))
-  )
+        (.setExpected (prepare-expected-attribute-values expected))))))
 
 
 
@@ -308,9 +294,7 @@
     :else
     (doto (AttributeValueUpdate.)
       (.setAction "PUT")
-      (.setValue (create-attribute-value v)))
-    )
-  )
+      (.setValue (create-attribute-value v)))))
 
 (defn- prepare-update-map
   "Turn a clojure map into a Map<String,AttributeValue>"
@@ -346,8 +330,7 @@
         (.setKey (create-KeyObject hash_key range_key))
         (.setAttributeUpdates (prepare-update-map item))
         (.setExpected (prepare-expected-attribute-values expected))
-        (.setReturnValues (prepare-return-values returned))
-        ))))
+        (.setReturnValues (prepare-return-values returned))))))
 
 
 
@@ -362,8 +345,7 @@
     (debug "delete-item: " table " hash: " hash_key " range: " range_key)
     (.deleteItem
       *ddb_client*
-      (DeleteItemRequest. table (create-KeyObject hash_key range_key))))
-  )
+      (DeleteItemRequest. table (create-KeyObject hash_key range_key)))))
 
 
 
@@ -383,8 +365,7 @@
   [operator & attribute_values]
   (doto (Condition.)
     (.setComparisonOperator (name operator))
-    (.setAttributeValueList (map create-attribute-value attribute_values)))
-  )
+    (.setAttributeValueList (map create-attribute-value attribute_values))))
 
 
 (defn- to-map
@@ -405,9 +386,7 @@
         *ddb_client*
         (doto (GetItemRequest.)
           (.setTableName table)
-          (.setKey (create-KeyObject hash_key range_key)))))
-  )
-)
+          (.setKey (create-KeyObject hash_key range_key)))))))
 
 (defn update-result->map
   [update-result]
@@ -456,9 +435,7 @@
         (vec (take limit items))
         (query table hash_key
           (assoc query_params :range_start_key new_range_start_key)
-          items)
-      )
-  )))
+          items)))))
 
 (defn create-scan-filter [m]
   (if m

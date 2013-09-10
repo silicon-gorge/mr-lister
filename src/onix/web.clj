@@ -107,10 +107,27 @@
   [application-name]
   (if-let [application (persistence/get-application application-name)]
     (->
-      application
-      (cheshire/generate-string)
-      (response json-content-type))
-    (error-response (str "Application named: '" application-name "' does not exist") 404)))
+     application
+     (cheshire/generate-string)
+     (response json-content-type))
+    (error-response (str "Application named: '" application-name "' does not exist.") 404)))
+
+(defn- put-application-metadata-item
+  "Creates or updates a piece of metadata for the specified application. Returns 404 if the
+application doesn't exist."
+  [application-name key req]
+  (if-let [application (persistence/get-application application-name)]
+    (if-let [data (slurp (:body req))]
+      (if (not (empty? data))
+        (do (->
+             application
+             (doto (prn))
+             (assoc (keyword key) data)
+             (persistence/create-application))
+            (response data json-content-type))
+        (error-response (str "Can't put empty metadata value.") 400)))
+    (error-response (str "Can't put data for key '" key "' because the application '" application-name "' does not exist.") 400))
+  )
 
 (defroutes applications-routes
 
@@ -119,9 +136,12 @@
 
   (GET "/" []
        (list-applications))
-  
+
   (GET "/:application" [application]
-       (get-application application)))
+       (get-application application))
+
+  (PUT "/:application/:key" [application key :as req]
+       (put-application-metadata-item application key req)))
 
 (defroutes routes
   (context

@@ -48,6 +48,16 @@
    :status 200
    :body (json/generate-string {:Table {:TableName table-name}})})
 
+(defn dynamo-get-request
+  [& {:keys [table key]}]
+  (dynamo-request-build (json/generate-string {:TableName table :Key {:HashKeyElement {:S key}}}) "GetItem"))
+
+(defn dynamo-get-response
+  [& {:keys [item]}]
+  (let [body-map (if item {:ConsumedCapacityUnits 1 :Item item} {:ConsumedCapacityUnits 1})]
+    {:type "application/x-amz-json-1.0" :status 200 :body
+     (json/generate-string body-map)}))
+
 (defn dynamo-scan-request
   [& {:keys [table]}]
   (dynamo-request-build (re-pattern (format ".*%s.*" table)) "Scan"))
@@ -74,7 +84,7 @@
          (let [response (client/get (url+ "/ping")  {:throw-exceptions false})]
            response => (contains {:status 200})))
 
-   (fact "Status returns successfully when valid response can be obtained from dynamo"
+   (fact "Status returns successfully when valid response can be obtained from dynamo."
          (rest-driven
           [(dynamo-request :table "onix-applications" :action "DescribeTable")
            (dynamo-describe-response "onix-applications")]
@@ -84,7 +94,7 @@
             response => (contains {:status 200})
             success => true)))
 
-   (fact "Status returns false when dynamo gives 400 response, i.e. bad request, table doesn't exist"
+   (fact "Status returns false when dynamo gives 400 response, i.e. bad request, table doesn't exist."
          (rest-driven
           [(dynamo-request :table "onix-applications" :action "DescribeTable")
            (dynamo-error-response :status 400 :ex "ConditionalCheckFailedException" :message "The conditional request failed")]
@@ -95,7 +105,7 @@
             success => false)))
 
    ; Note that the dynamo client does several retries, hence :times 11 for the rest driver response.
-   (fact "Status returns false when dynamo gives 500 response, I'm not working"
+   (fact "Status returns false when dynamo gives 500 response, I'm not working."
          (rest-driven
           [(dynamo-request :table "onix-applications" :action "DescribeTable")
            (assoc (dynamo-error-response :status 500 :ex "InternalServerError" :message "The service is currently unavailable or busy.") :times 11)]
@@ -105,7 +115,7 @@
             response => (contains {:status 200})
             success => false)))
 
-   (fact "Create application succeeds with correct input"
+   (fact "Create application succeeds with correct input."
          (rest-driven
           [(dynamo-request :table "onix-applications" :action "PutItem")
            (dynamo-put-response)]
@@ -113,10 +123,43 @@
                 body (read-body response)]
             response => (contains {:status 201}))))
 
-   (fact "List applications succeeds"
+   (fact "List applications succeeds."
          (rest-driven
           [(dynamo-scan-request :table "onix-applications")
            (dynamo-scan-response [{"name" {"S" "myapplication"}}])]
           (let [response (client/get (url+ "/applications") {:throw-exceptions false})
                 body (read-body response)]
+            response => (contains {:status 200}))))
+
+   (fact "Create metadata for application fails when application does not exist."
+         (rest-driven
+          [(dynamo-get-request :table "onix-applications" :key "myapp")
+           (dynamo-get-response)]
+          (let [response (client/put (url+ "/applications/myapp/newkey") {:throw-exceptions false})]
+            response => (contains {:status 400}))))
+
+   (fact "Create metadata for application fails when no data is supplied."
+         (rest-driven
+          [(dynamo-get-request :table "onix-applications" :key "myapp")
+           (dynamo-get-response :item {:name "myapp"})]
+          (let [response (client/put (url+ "/applications/myapp/newkey") {:throw-exceptions false})]
+            response => (contains {:status 400}))))
+
+   (fact "Create metadata for application succeeds (and doesn't trash existing metadata."
+         (rest-driven
+          [(dynamo-get-request :table "onix-applications" :key "myapp")
+           (dynamo-get-response :item {"name" {"S" "myapp"}
+                                       "key1" {"S" "val1"}
+                                       "key2" {"S" "val2"}})
+           (dynamo-request :table "onix-applications" :action "PutItem")
+           (dynamo-put-response)]
+          (let [response (client/put (url+ "/applications/myapp/newkey") {:body "newvalue"
+                                                                          :throw-exceptions false})]
+            response => (contains {:status 200}))))
+
+   (fact "Getting application is successful"
+         (rest-driven
+          [(dynamo-get-request :table "onix-applications" :key "myapp")
+           (dynamo-get-response :item {"name" {"S" "myapp"}})]
+          (let [response (client/get (url+ "/applications/myapp"))]
             response => (contains {:status 200})))))
