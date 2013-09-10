@@ -63,6 +63,7 @@
                                                             ")
 
 (def json-content-type "application/json;charset=UTF-8")
+(def text-plain-type "text/plain;charset=UTF-8")
 
 (def ^:dynamic *version* "none")
 (defn set-version! [version]
@@ -113,21 +114,29 @@
     (error-response (str "Application named: '" application-name "' does not exist.") 404)))
 
 (defn- put-application-metadata-item
-  "Creates or updates a piece of metadata for the specified application. Returns 404 if the
-application doesn't exist."
+  "Creates or updates a piece of metadata for the specified application. Returns 400 for bad request
+   e.g. application doesn't exist or no metadata supplied."
   [application-name key req]
   (if-let [application (persistence/get-application application-name)]
     (if-let [data (slurp (:body req))]
       (if (not (empty? data))
         (do (->
              application
-             (doto (prn))
              (assoc (keyword key) data)
              (persistence/create-application))
-            (response data json-content-type))
+            (response data text-plain-type))
         (error-response (str "Can't put empty metadata value.") 400)))
     (error-response (str "Can't put data for key '" key "' because the application '" application-name "' does not exist.") 400))
   )
+
+(defn- get-application-metadata-item
+  "Get a piece of metadata for an application. Returns 404 if either the application or the metadata is not found"
+  [application-name key]
+  (if-let [application (persistence/get-application application-name)]
+    (if-let [value ((keyword key) application)]
+      (response value text-plain-type)
+      (error-response (str "Can't find metadata '" key "' for application '" application-name "'.") 404))
+    (error-response (str "Can't find application '" application-name "'.") 404)))
 
 (defroutes applications-routes
 
@@ -139,6 +148,9 @@ application doesn't exist."
 
   (GET "/:application" [application]
        (get-application application))
+
+  (GET "/:application/:key" [application key]
+       (get-application-metadata-item application key))
 
   (PUT "/:application/:key" [application key :as req]
        (put-application-metadata-item application key req)))

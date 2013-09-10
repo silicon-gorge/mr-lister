@@ -30,6 +30,9 @@
 (defmethod read-body "application/json" [http-response]
   (json/parse-string (:body http-response) true))
 
+(defmethod read-body "text/plain" [http-response]
+  (:body http-response))
+
 (defn dynamo-request-build [body-matcher action]
   (let [req {:method :POST :url "/" :body [body-matcher "application/x-amz-json-1.0"]}]
     (if (nil? action)
@@ -145,17 +148,17 @@
           (let [response (client/put (url+ "/applications/myapp/newkey") {:throw-exceptions false})]
             response => (contains {:status 400}))))
 
-   (fact "Create metadata for application succeeds (and doesn't trash existing metadata."
+   (fact "Create metadata for application succeeds."
          (rest-driven
           [(dynamo-get-request :table "onix-applications" :key "myapp")
-           (dynamo-get-response :item {"name" {"S" "myapp"}
-                                       "key1" {"S" "val1"}
-                                       "key2" {"S" "val2"}})
+           (dynamo-get-response :item {"name" {"S" "myapp"}})
            (dynamo-request :table "onix-applications" :action "PutItem")
            (dynamo-put-response)]
           (let [response (client/put (url+ "/applications/myapp/newkey") {:body "newvalue"
-                                                                          :throw-exceptions false})]
-            response => (contains {:status 200}))))
+                                                                          :throw-exceptions false})
+                body (read-body response)]
+            response => (contains {:status 200})
+            body => "newvalue")))
 
    (fact "Getting application is successful"
          (rest-driven
