@@ -165,4 +165,28 @@
           [(dynamo-get-request :table "onix-applications" :key "myapp")
            (dynamo-get-response :item {"name" {"S" "myapp"}})]
           (let [response (client/get (url+ "/applications/myapp"))]
-            response => (contains {:status 200})))))
+            response => (contains {:status 200}))))
+
+   (fact "Getting application returns not found when application does not exist"
+         (rest-driven
+          [(dynamo-get-request :table "onix-applications" :key "myapp")
+           (dynamo-get-response)]
+          (let [response (client/get (url+ "/applications/myapp") {:throw-exceptions false})]
+            response => (contains {:status 404}))))
+
+   (fact "Getting metadata returns not found when application does not exist"
+         (rest-driven
+          [(dynamo-get-request :table "onix-applications" :key "myapp")
+           (dynamo-get-response)]
+          (let [response (client/get (url+ "/applications/myapp/mykey") {:throw-exceptions false})]
+            response => (contains {:status 404}))))
+
+   (fact "Getting metadata is successful when application and metadata both exist"
+         (rest-driven
+          [(dynamo-get-request :table "onix-applications" :key "myapp")
+           (dynamo-get-response :item {"name" {"S" "myapp"}
+                                       "mykey" {"S" "myvalue"}})]
+          (let [response (client/get (url+ "/applications/myapp/mykey"))
+                body (read-body response)]
+            response => (contains {:status 200})
+            body => "myvalue"))))
