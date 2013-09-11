@@ -36,9 +36,9 @@
   (when-let [application (dynamo/with-client
                            @dynamo-client
                            (dynamo/get-item applications-table {:hash_key application-name}))]
-    (let [metadata (cheshire/parse-string (:metadata application) true)]
-      (prn "GET APP" (assoc application :metadata metadata))
-      (assoc application :metadata metadata))))
+    (if-let [metadata (cheshire/parse-string (:metadata application) true)]
+      (assoc application :metadata metadata)
+      application)))
 
 (defn get-application-metadata-item
   [application-name key]
