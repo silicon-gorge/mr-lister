@@ -1,6 +1,16 @@
 (defproject onix "0.9-SNAPSHOT"
   :description "Onix service"
   :url "http://wikis.in.nokia.com/NokiaMusicArchitecture/Onix"
+  
+;;; USEFUL COMMANDS
+
+;;; lein start                       Starts up ring in auto-reload mode on port SERVICE_PORT (default 3000). Alias for: lein ring server-headless.
+;;; lein autotest                    Uses midje autotest across all classes and tests. Alias for: lein midje :autotest src/ingestion_store test/ingestion_store.
+;;; lein autounit                    Uses midje autotest across all classes and unit tests. Alias for: lein midje :autotest src/ingestion_store test/ingestion_store/unit.
+;;; lein start-integration           Starts in integration mode (pointing at real external services)** Alias for: lein with-profile integration ring server-headless.
+;;; lein midje                       Runs all tests
+;;; lein acceptance                  Runs the acceptance tests (useful for CI server). Alias for: lein midje :filter acceptance.
+;;; lein midje :filter unit          Run unit tests
 
   :dependencies [[compojure "1.1.5" :exclusions [javax.servlet/servlet-api]]
                  [ring-middleware-format "0.3.1"]

@@ -86,24 +86,28 @@
      (response json-content-type))))
 
 (defn- create-application
+  "Create a new application from the contents of the given request."
   [req]
   (let [body (:jsonbody req)
         result (persistence/create-application body)]
     (response body json-content-type 201)))
 
 (defn- list-applications
+  "Get a list of all the stored applications."
   []
   (->
    (persistence/list-applications)
    (response json-content-type)))
 
 (defn- get-application
+  "Returns the application with the given name, or '404' if it doesn't exist."
   [application-name]
   (if-let [application (persistence/get-application application-name)]
     (response application json-content-type)
     (error-response (str "Application named: '" application-name "' does not exist.") 404)))
 
 (defn- put-application-metadata-item
+  "Updates the given application with the given key and value (from the request body)."
   [application-name key req]
   (let [body (:jsonbody req)]
     (if-let [result (persistence/update-application-metadata application-name key (:value body))]
@@ -111,6 +115,7 @@
       (error-response (str "Application named: '" application-name "' does not exist.") 404))))
 
 (defn- get-application-metadata-item
+  "Get a piece of metadata for an application. Returns 404 if either the application or the metadata is not found"
   [application-name key]
   (if-let [item (persistence/get-application-metadata-item application-name key)]
     (response item json-content-type)
