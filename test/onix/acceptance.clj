@@ -139,14 +139,14 @@
           [(dynamo-get-request :table "onix-applications" :key "myapp")
            (dynamo-get-response)]
           (let [response (client/put (url+ "/applications/myapp/newkey") {:throw-exceptions false})]
-            response => (contains {:status 400}))))
+            response => (contains {:status 404}))))
 
    (fact "Create metadata for application fails when no data is supplied."
          (rest-driven
           [(dynamo-get-request :table "onix-applications" :key "myapp")
            (dynamo-get-response :item {:name "myapp"})]
           (let [response (client/put (url+ "/applications/myapp/newkey") {:throw-exceptions false})]
-            response => (contains {:status 400}))))
+            response => (contains {:status 404}))))
 
    (fact "Create metadata for application succeeds."
          (rest-driven

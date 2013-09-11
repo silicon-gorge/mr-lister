@@ -33,18 +33,19 @@
 (defn get-application
   "Fetches the data for the application with the given name."
   [application-name]
-  (let [application (dynamo/with-client
-                      @dynamo-client
-                      (dynamo/get-item applications-table {:hash_key application-name}))
-        metadata (cheshire/parse-string (:metadata application) true)]
-    (assoc application :metadata metadata)))
+  (when-let [application (dynamo/with-client
+                           @dynamo-client
+                           (dynamo/get-item applications-table {:hash_key application-name}))]
+    (let [metadata (cheshire/parse-string (:metadata application) true)]
+      (prn "GET APP" (assoc application :metadata metadata))
+      (assoc application :metadata metadata))))
 
 (defn get-application-metadata-item
   [application-name key]
   (when-let [app (get-application application-name)]
-    (let [metadata (:metadata app)
-          value ((keyword key) metadata)]
-      {(keyword key) value})))
+    (when-let [metadata (:metadata app)]
+      (when-let [value ((keyword key) metadata)]
+        {(keyword key) value}))))
 
 (defn update-application-metadata
   [application-name key value]
