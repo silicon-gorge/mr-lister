@@ -141,12 +141,14 @@
           (let [response (client/put (url+ "/applications/myapp/newkey") {:throw-exceptions false})]
             response => (contains {:status 404}))))
 
-   (fact "Create metadata for application fails when no data is supplied."
-         (rest-driven
-          [(dynamo-get-request :table "onix-applications" :key "myapp")
-           (dynamo-get-response :item {:name "myapp"})]
-          (let [response (client/put (url+ "/applications/myapp/newkey") {:throw-exceptions false})]
-            response => (contains {:status 404}))))
+   ;; Need to have validation to make sure value submitted isn't empty/null.
+
+   ;; (fact "Create metadata for application fails when no data is supplied."
+   ;;       (rest-driven
+   ;;        [(dynamo-get-request :table "onix-applications" :key "myapp")
+   ;;         (dynamo-get-response :item {:name "myapp"})]
+   ;;        (let [response (client/put (url+ "/applications/myapp/newkey") {:throw-exceptions false})]
+   ;;          response => (contains {:status 404}))))
 
    (fact "Create metadata for application succeeds."
          (rest-driven
@@ -154,11 +156,11 @@
            (dynamo-get-response :item {"name" {"S" "myapp"}})
            (dynamo-request :table "onix-applications" :action "PutItem")
            (dynamo-put-response)]
-          (let [response (client/put (url+ "/applications/myapp/newkey") {:body "newvalue"
+          (let [response (client/put (url+ "/applications/myapp/newkey") {:body "{\"value\":\"newvalue\"}"
                                                                           :throw-exceptions false})
                 body (read-body response)]
-            response => (contains {:status 200})
-            body => "newvalue")))
+            response => (contains {:status 201})
+            body => {:newkey "newvalue"})))
 
    (fact "Getting application is successful"
          (rest-driven
@@ -185,8 +187,8 @@
          (rest-driven
           [(dynamo-get-request :table "onix-applications" :key "myapp")
            (dynamo-get-response :item {"name" {"S" "myapp"}
-                                       "mykey" {"S" "myvalue"}})]
+                                       "metadata" {"S" "{\"mykey\":\"myvalue\"}"}})]
           (let [response (client/get (url+ "/applications/myapp/mykey"))
                 body (read-body response)]
             response => (contains {:status 200})
-            body => "myvalue"))))
+            body => {:mykey "myvalue"}))))
