@@ -82,45 +82,25 @@
       :version *version*
       :success dynamo-ok
       :dependencies [{:name "dynamodb" :success dynamo-ok}]}
-     (cheshire/generate-string)
      (response json-content-type))))
 
 (defn- create-application
   [req]
   (let [body (cheshire/parse-string (slurp (:body req)))
         result (persistence/create-application body)]
-    (response (cheshire/generate-string body) json-content-type 201)))
+    (response body json-content-type 201)))
 
 (defn- list-applications
   []
   (->
    (persistence/list-applications)
-   (cheshire/generate-string)
    (response json-content-type)))
-
-;; (defn- jsonify-values
-;;   [map]
-;;   (let [name (:name map)
-;;         m (dissoc map :name)
-;;         n (reduce (fn [r [k v]] (assoc r k (cheshire/parse-string v))) {} m)]
-;;     (assoc n :name name)))
 
 (defn- get-application
   [application-name]
   (if-let [application (persistence/get-application application-name)]
     (response application json-content-type)
     (error-response (str "Application named: '" application-name "' does not exist.") 404)))
-
-;; (defn- get-application
-;;   "Returns the application with the given name, or '404' if it doesn't exist."
-;;   [application-name]
-;;   (if-let [application (persistence/get-application application-name)]
-;;     (->
-;;      application
-;;      (jsonify-values)
-;;      (cheshire/generate-string)
-;;      (response json-content-type))
-;;     (error-response (str "Application named: '" application-name "' does not exist.") 404)))
 
 (defn- put-application-metadata-item
   [application-name key req]
@@ -134,15 +114,6 @@
   (if-let [item (persistence/get-application-metadata-item application-name key)]
     (response item json-content-type)
     (error-response (str "Can't find metadata '" key "' for application '" application-name "'.") 404)))
-
-;; (defn- get-application-metadata-item
-;;   "Get a piece of metadata for an application. Returns 404 if either the application or the metadata is not found"
-;;   [application-name key]
-;;   (if-let [application (persistence/get-application application-name)]
-;;     (if-let [value ((keyword key) application)]
-;;       (response {:value (cheshire/parse-string value)} json-content-type)
-;;       (error-response (str "Can't find metadata '" key "' for application '" application-name "'.") 404))
-;;     (error-response (str "Can't find application '" application-name "'.") 404)))
 
 (defroutes applications-routes
 
