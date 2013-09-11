@@ -161,9 +161,12 @@
   [handler]
   (fn [{:keys [request-method content-type body] :as req}]
     (if (or (= request-method :post) (= request-method :put))
-      (try
-        (handler (assoc req :jsonbody (cheshire/parse-string (slurp body) true)))
-        (catch JsonParseException e (error-response "Valid json please." 400)))
+      (let [content (slurp body)]
+        (if (not (empty? content))
+          (try
+            (handler (assoc req :jsonbody (cheshire/parse-string content true)))
+            (catch JsonParseException e (error-response "Valid json please." 400)))
+          (error-response "No empty bodies on put and post please." 400)))
       (handler req))))
 
 (def app
