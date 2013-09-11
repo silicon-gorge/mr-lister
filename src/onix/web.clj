@@ -119,32 +119,24 @@
 
 (defn- put-application-metadata-item
   [application-name key req]
-  (if-let [application (persistence/get-application application-name)]
-    (let [body (slurp (:body req))
-          json (cheshire/parse-string body true)]
-      (if-let [value (:value json)]
-        (do (->
-             application
-             (doto (prn))
-             (assoc (keyword key) (cheshire/generate-string value))
-             (persistence/create-application))
-            (response json json-content-type))
-        (error-response (str "No value supplied. Please supply json with key 'value' and arbitrary json as the value.") 400)))
-    (error-response (str "Can't put data for key '" key "' because the application '" application-name "' does not exist.") 400)))
+  (let [body (cheshire/parse-string (slurp (:body req)) true)]
+    (->
+     (persistence/update-application-metadata application-name key (:value body))
+     (response json-content-type 201))))
 
 ;; (defn- put-application-metadata-item
-;;   "Creates or updates a piece of metadata for the specified application. Returns 400 for bad request
-;;    e.g. application doesn't exist or no metadata supplied."
 ;;   [application-name key req]
 ;;   (if-let [application (persistence/get-application application-name)]
-;;     (if-let [data (slurp (:body req))]
-;;       (if (not (empty? data))
+;;     (let [body (slurp (:body req))
+;;           json (cheshire/parse-string body true)]
+;;       (if-let [value (:value json)]
 ;;         (do (->
 ;;              application
-;;              (assoc (keyword key) data)
+;;              (doto (prn))
+;;              (assoc (keyword key) (cheshire/generate-string value))
 ;;              (persistence/create-application))
-;;             (response data text-plain-type))
-;;         (error-response (str "Can't put empty metadata value.") 400)))
+;;             (response json json-content-type))
+;;         (error-response (str "No value supplied. Please supply json with key 'value' and arbitrary json as the value.") 400)))
 ;;     (error-response (str "Can't put data for key '" key "' because the application '" application-name "' does not exist.") 400)))
 
 (defn- get-application-metadata-item

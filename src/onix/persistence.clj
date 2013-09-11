@@ -2,7 +2,8 @@
   (:require [onix.aws-common :as aws]
             [onix.dynamolib :as dynamo]
             [environ.core :refer [env]]
-            [clojure.tools.logging :refer [info warn error]])
+            [clojure.tools.logging :refer [info warn error]]
+            [cheshire.core :as cheshire])
   (:import (com.amazonaws AmazonServiceException)
            (com.amazonaws AmazonClientException)
            (com.amazonaws.services.dynamodb AmazonDynamoDBClient)))
@@ -35,6 +36,15 @@
   (dynamo/with-client
     @dynamo-client
     (dynamo/get-item applications-table {:hash_key application-name})))
+
+(defn update-application-metadata
+  [application-name key value]
+  (let [app (get-application application-name)
+        metadata (cheshire/parse-string (:metadata app) true)
+        new-metadata (assoc metadata (keyword key) value)
+        new-app (assoc app :metadata (cheshire/generate-string new-metadata))]
+    (create-application new-app)
+    {(keyword key) value}))
 
 (defn dynamo-health-check
   "Checks that we can talk to Dynamo and get a description of one of our tables."
