@@ -16,7 +16,8 @@
                                                 replace-guid replace-mongoid replace-number]]
               [nokia.ring-utils.ignore-trailing-slash :refer [wrap-ignore-trailing-slash]]
               [metrics.ring.expose :refer [expose-metrics-as-json]]
-              [metrics.ring.instrument :refer [instrument]]))
+              [metrics.ring.instrument :refer [instrument]])
+  (:import [com.fasterxml.jackson.core JsonParseException]))
 
 
 (def pokemon
@@ -86,7 +87,7 @@
 
 (defn- create-application
   [req]
-  (let [body (cheshire/parse-string (slurp (:body req)))
+  (let [body (:jsonbody req)
         result (persistence/create-application body)]
     (response body json-content-type 201)))
 
@@ -104,7 +105,7 @@
 
 (defn- put-application-metadata-item
   [application-name key req]
-  (let [body (cheshire/parse-string (slurp (:body req)) true)]
+  (let [body (:jsonbody req)]
     (if-let [result (persistence/update-application-metadata application-name key (:value body))]
       (response result json-content-type 201)
       (error-response (str "Application named: '" application-name "' does not exist.") 404))))
@@ -150,12 +151,23 @@
 
   (route/not-found (error-response "Resource not found" 404)))
 
+(defn read-body
+  "Reads the the body as json for all POSTs and PUTs. This is a json-only service after all! Failures result in a 400 response."
+  [handler]
+  (fn [{:keys [request-method content-type body] :as req}]
+    (if (or (= request-method :post) (= request-method :put))
+      (try
+        (handler (assoc req :jsonbody (cheshire/parse-string (slurp body) true)))
+        (catch JsonParseException e (error-response "Valid json please." 400)))
+      (handler req))))
+
 (def app
   (-> routes
       (instrument)
       (wrap-error-handling)
       (wrap-ignore-trailing-slash)
       (wrap-keyword-params)
+      (read-body)
       (wrap-params)
       (wrap-json-response)
       (wrap-per-resource-metrics [replace-guid replace-mongoid replace-number (replace-outside-app "/1.x")])

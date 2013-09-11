@@ -126,6 +126,10 @@
                 body (read-body response)]
             response => (contains {:status 201}))))
 
+   (fact "Create application fails with invalid json."
+         (let [response (client/post (url+ "/applications") {:body "{\"key\":\"value\"" :throw-exceptions false})]
+           response => (contains {:status 400})))
+
    (fact "List applications succeeds."
          (rest-driven
           [(dynamo-scan-request :table "onix-applications")
@@ -161,6 +165,11 @@
                 body (read-body response)]
             response => (contains {:status 201})
             body => {:newkey "newvalue"})))
+
+   (fact "Create metadata for application fails if the json submitted is invalid"
+         (let [response (client/put (url+ "/applications/my/newkey") {:body "{\"value:\"newvalue\"}"
+                                                                      :throw-exceptions false})]
+           response => (contains {:status 400})))
 
    (fact "Getting application is successful"
          (rest-driven
