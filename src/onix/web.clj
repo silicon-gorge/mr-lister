@@ -98,55 +98,51 @@
    (cheshire/generate-string)
    (response json-content-type)))
 
-(defn- jsonify-values
-  [map]
-  (let [name (:name map)
-        m (dissoc map :name)
-        n (reduce (fn [r [k v]] (assoc r k (cheshire/parse-string v))) {} m)]
-    (assoc n :name name)))
+;; (defn- jsonify-values
+;;   [map]
+;;   (let [name (:name map)
+;;         m (dissoc map :name)
+;;         n (reduce (fn [r [k v]] (assoc r k (cheshire/parse-string v))) {} m)]
+;;     (assoc n :name name)))
 
 (defn- get-application
-  "Returns the application with the given name, or '404' if it doesn't exist."
   [application-name]
   (if-let [application (persistence/get-application application-name)]
-    (->
-     application
-     (jsonify-values)
-     (doto (prn))
-     (cheshire/generate-string)
-     (response json-content-type))
+    (response application json-content-type)
     (error-response (str "Application named: '" application-name "' does not exist.") 404)))
+
+;; (defn- get-application
+;;   "Returns the application with the given name, or '404' if it doesn't exist."
+;;   [application-name]
+;;   (if-let [application (persistence/get-application application-name)]
+;;     (->
+;;      application
+;;      (jsonify-values)
+;;      (cheshire/generate-string)
+;;      (response json-content-type))
+;;     (error-response (str "Application named: '" application-name "' does not exist.") 404)))
 
 (defn- put-application-metadata-item
   [application-name key req]
   (let [body (cheshire/parse-string (slurp (:body req)) true)]
-    (->
-     (persistence/update-application-metadata application-name key (:value body))
-     (response json-content-type 201))))
-
-;; (defn- put-application-metadata-item
-;;   [application-name key req]
-;;   (if-let [application (persistence/get-application application-name)]
-;;     (let [body (slurp (:body req))
-;;           json (cheshire/parse-string body true)]
-;;       (if-let [value (:value json)]
-;;         (do (->
-;;              application
-;;              (doto (prn))
-;;              (assoc (keyword key) (cheshire/generate-string value))
-;;              (persistence/create-application))
-;;             (response json json-content-type))
-;;         (error-response (str "No value supplied. Please supply json with key 'value' and arbitrary json as the value.") 400)))
-;;     (error-response (str "Can't put data for key '" key "' because the application '" application-name "' does not exist.") 400)))
+    (if-let [result (persistence/update-application-metadata application-name key (:value body))]
+      (response result json-content-type 201)
+      (error-response (str "Application named: '" application-name "' does not exist.") 404))))
 
 (defn- get-application-metadata-item
-  "Get a piece of metadata for an application. Returns 404 if either the application or the metadata is not found"
   [application-name key]
-  (if-let [application (persistence/get-application application-name)]
-    (if-let [value ((keyword key) application)]
-      (response {:value (cheshire/parse-string value)} json-content-type)
-      (error-response (str "Can't find metadata '" key "' for application '" application-name "'.") 404))
-    (error-response (str "Can't find application '" application-name "'.") 404)))
+  (if-let [item (persistence/get-application-metadata-item application-name key)]
+    (response item json-content-type)
+    (error-response (str "Can't find metadata '" key "' for application '" application-name "'.") 404)))
+
+;; (defn- get-application-metadata-item
+;;   "Get a piece of metadata for an application. Returns 404 if either the application or the metadata is not found"
+;;   [application-name key]
+;;   (if-let [application (persistence/get-application application-name)]
+;;     (if-let [value ((keyword key) application)]
+;;       (response {:value (cheshire/parse-string value)} json-content-type)
+;;       (error-response (str "Can't find metadata '" key "' for application '" application-name "'.") 404))
+;;     (error-response (str "Can't find application '" application-name "'.") 404)))
 
 (defroutes applications-routes
 

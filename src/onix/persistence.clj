@@ -33,18 +33,26 @@
 (defn get-application
   "Fetches the data for the application with the given name."
   [application-name]
-  (dynamo/with-client
-    @dynamo-client
-    (dynamo/get-item applications-table {:hash_key application-name})))
+  (let [application (dynamo/with-client
+                      @dynamo-client
+                      (dynamo/get-item applications-table {:hash_key application-name}))
+        metadata (cheshire/parse-string (:metadata application) true)]
+    (assoc application :metadata metadata)))
+
+(defn get-application-metadata-item
+  [application-name key]
+  (when-let [app (get-application application-name)]
+    (let [metadata (:metadata app)
+          value ((keyword key) metadata)]
+      {(keyword key) value})))
 
 (defn update-application-metadata
   [application-name key value]
-  (let [app (get-application application-name)
-        metadata (cheshire/parse-string (:metadata app) true)
-        new-metadata (assoc metadata (keyword key) value)
-        new-app (assoc app :metadata (cheshire/generate-string new-metadata))]
-    (create-application new-app)
-    {(keyword key) value}))
+  (when-let [app (get-application application-name)]
+    (let [new-metadata (assoc (:metadata app) (keyword key) value)
+          new-app (assoc app :metadata (cheshire/generate-string new-metadata))]
+      (create-application new-app)
+      {(keyword key) value})))
 
 (defn dynamo-health-check
   "Checks that we can talk to Dynamo and get a description of one of our tables."
