@@ -74,11 +74,6 @@
    :headers {"Content-Type" content-type}
    :body data})
 
-;(defn error-response
-;  [msg & [status]]
-;  (let [s (or status 404)]
-;    {:status s :body (cheshire/generate-string {:message msg :status s}) :headers headers}))
-
 (defn status
   []
   (let [dynamo-ok (persistence/dynamo-health-check)]
@@ -103,38 +98,61 @@
    (cheshire/generate-string)
    (response json-content-type)))
 
+(defn- jsonify-values
+  [map]
+  (let [name (:name map)
+        m (dissoc map :name)
+        n (reduce (fn [r [k v]] (assoc r k (cheshire/parse-string v))) {} m)]
+    (assoc n :name name)))
+
 (defn- get-application
   "Returns the application with the given name, or '404' if it doesn't exist."
   [application-name]
   (if-let [application (persistence/get-application application-name)]
     (->
      application
+     (jsonify-values)
+     (doto (prn))
      (cheshire/generate-string)
      (response json-content-type))
     (error-response (str "Application named: '" application-name "' does not exist.") 404)))
 
 (defn- put-application-metadata-item
-  "Creates or updates a piece of metadata for the specified application. Returns 400 for bad request
-   e.g. application doesn't exist or no metadata supplied."
   [application-name key req]
   (if-let [application (persistence/get-application application-name)]
-    (if-let [data (slurp (:body req))]
-      (if (not (empty? data))
+    (let [body (slurp (:body req))
+          json (cheshire/parse-string body true)]
+      (if-let [value (:value json)]
         (do (->
              application
-             (assoc (keyword key) data)
+             (doto (prn))
+             (assoc (keyword key) (cheshire/generate-string value))
              (persistence/create-application))
-            (response data text-plain-type))
-        (error-response (str "Can't put empty metadata value.") 400)))
-    (error-response (str "Can't put data for key '" key "' because the application '" application-name "' does not exist.") 400))
-  )
+            (response json json-content-type))
+        (error-response (str "No value supplied. Please supply json with key 'value' and arbitrary json as the value.") 400)))
+    (error-response (str "Can't put data for key '" key "' because the application '" application-name "' does not exist.") 400)))
+
+;; (defn- put-application-metadata-item
+;;   "Creates or updates a piece of metadata for the specified application. Returns 400 for bad request
+;;    e.g. application doesn't exist or no metadata supplied."
+;;   [application-name key req]
+;;   (if-let [application (persistence/get-application application-name)]
+;;     (if-let [data (slurp (:body req))]
+;;       (if (not (empty? data))
+;;         (do (->
+;;              application
+;;              (assoc (keyword key) data)
+;;              (persistence/create-application))
+;;             (response data text-plain-type))
+;;         (error-response (str "Can't put empty metadata value.") 400)))
+;;     (error-response (str "Can't put data for key '" key "' because the application '" application-name "' does not exist.") 400)))
 
 (defn- get-application-metadata-item
   "Get a piece of metadata for an application. Returns 404 if either the application or the metadata is not found"
   [application-name key]
   (if-let [application (persistence/get-application application-name)]
     (if-let [value ((keyword key) application)]
-      (response value text-plain-type)
+      (response {:value (cheshire/parse-string value)} json-content-type)
       (error-response (str "Can't find metadata '" key "' for application '" application-name "'.") 404))
     (error-response (str "Can't find application '" application-name "'.") 404)))
 
