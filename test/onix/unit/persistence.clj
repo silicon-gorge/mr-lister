@@ -4,6 +4,13 @@
   (:use midje.sweet))
 
 (fact-group :unit
+            
+            (facts "About creating a new application."
+                   
+                   (fact "Creating an application which already exists returns nil"
+                         (persistence/create-application {:name "dummy"}) => nil
+                         (provided
+                           (persistence/get-application "dummy") => anything)))
 
             (facts "About getting an application from store"
 
