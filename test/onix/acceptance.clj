@@ -120,7 +120,9 @@
 
    (fact "Create application succeeds with correct input."
          (rest-driven
-          [(dynamo-request :table "onix-applications" :action "PutItem")
+          [(dynamo-get-request :table "onix-applications" :key "myapp")
+           (dynamo-get-response)
+           (dynamo-request :table "onix-applications" :action "PutItem")
            (dynamo-put-response)]
           (let [response (client/post (url+ "/applications") {:body "{\"name\":\"myapp\"}" :throw-exceptions false})
                 body (read-body response)]

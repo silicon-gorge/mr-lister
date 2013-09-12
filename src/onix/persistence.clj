@@ -14,12 +14,13 @@
   "Creates a DynamoDB client from the AWS Java SDK"
   (delay
    (do
-     (prn "DYNAMO ENDPOINT" (env :dynamo-endpoint))
+;     (prn "DYNAMO ENDPOINT" (env :dynamo-endpoint))
      (aws/add-credentials)
      (doto (AmazonDynamoDBClient. @aws/amazon-client-config)
        (.setEndpoint (env :dynamo-endpoint))))))
 
-(defn create-application
+(defn create-or-update-application
+  "Creates the given application in store."
   [application]
   (dynamo/with-client
     @dynamo-client
@@ -40,6 +41,12 @@
       (assoc application :metadata metadata)
       application)))
 
+(defn create-application
+  "Creates the given application in store, unless it already exists."
+  [application]
+  (if (nil? (get-application (:name application)))
+    (create-or-update-application application)))
+
 (defn get-application-metadata-item
   [application-name key]
   (when-let [app (get-application application-name)]
@@ -52,7 +59,7 @@
   (when-let [app (get-application application-name)]
     (let [new-metadata (assoc (:metadata app) (keyword key) value)
           new-app (assoc app :metadata (cheshire/generate-string new-metadata))]
-      (create-application new-app)
+      (create-or-update-application new-app)
       {(keyword key) value})))
 
 (defn delete-application-metadata-item

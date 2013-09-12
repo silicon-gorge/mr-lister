@@ -26,7 +26,7 @@
                          (provided
                            (persistence/get-application "dummy") => {:name "dummy"
                                                                      :metadata {:size "big" :colour "red"}}
-                           (persistence/create-application {:name "dummy"
+                           (persistence/create-or-update-application {:name "dummy"
                                                             :metadata "{\"key\":\"value\",\"size\":\"big\",\"colour\":\"red\"}"})
                            => anything))
 
@@ -35,7 +35,7 @@
                          (provided
                            (persistence/get-application "dummy") => {:name "dummy"
                                                                      :metadata {:size "big" :colour "red"}}
-                           (persistence/create-application {:name "dummy"
+                           (persistence/create-or-update-application {:name "dummy"
                                                             :metadata "{\"size\":\"big\",\"colour\":\"blue\"}"})
                            => anything))
 
