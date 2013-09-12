@@ -195,4 +195,44 @@
           (let [response (client/get (url+ "/applications/myapp/mykey"))
                 body (read-body response)]
             response => (contains {:status 200})
-            body => {:mykey "myvalue"}))))
+            body => {:mykey "myvalue"})))
+
+   (fact "Deleting a metadata item where application doesn't exist returns 204 No Content"
+         (rest-driven
+          [(dynamo-get-request :table "onix-applications" :key "myapp")
+           (dynamo-get-response)]
+          (let [response (client/delete (url+ "/applications/myapp/mykey") {:throw-exceptions false})]
+            response => (contains {:status 204}))))
+
+   (fact "Deleting a metadata item that doesn't exist returns 204 No Content"
+         (rest-driven
+          [(dynamo-get-request :table "onix-applications" :key "myapp")
+           (dynamo-get-response :item {"name" {"S" "myapp"}
+                                       "metadata" {"S" "{\"anotherkey\":\"value\"}"}})]
+          (let [response (client/delete (url+ "/applications/myapp/mykey") {:throw-exceptions false})]
+            response => (contains {:status 204}))))
+
+   (fact "Deleting a metadata item where app has no metadata returns 204 No Content"
+         (rest-driven
+          [(dynamo-get-request :table "onix-applications" :key "myapp")
+           (dynamo-get-response :item {"name" {"S" "myapp"}})]
+          (let [response (client/delete (url+ "/applications/myapp/mykey") {:throw-exceptions false})]
+            response => (contains {:status 204}))))
+
+   (fact "Deleting a metadata item where app has empty metadata returns 204 No Content"
+         (rest-driven
+          [(dynamo-get-request :table "onix-applications" :key "myapp")
+           (dynamo-get-response :item {"name" {"S" "myapp"}
+                                       "metadata" {"S" "{}"}})]
+          (let [response (client/delete (url+ "/applications/myapp/mykey") {:throw-exceptions false})]
+            response => (contains {:status 204}))))
+
+   (fact "Deleting a metadata item is successful and returns 204 No Content"
+         (rest-driven
+          [(dynamo-get-request :table "onix-applications" :key "myapp")
+           (dynamo-get-response :item {"name" {"S" "myapp"}
+                                       "metadata" {"S" "{\"mykey\":\"value\",\"key2\":\"value2\"}"}})
+           (dynamo-request :table "onix-applications" :action "PutItem")
+           (dynamo-put-response)]
+          (let [response (client/delete (url+ "/applications/myapp/mykey") {:throw-exceptions false})]
+            response => (contains {:status 204})))))
