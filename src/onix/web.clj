@@ -121,6 +121,12 @@
     (response item json-content-type)
     (error-response (str "Can't find metadata '" key "' for application '" application-name "'.") 404)))
 
+(defn- delete-application-metadata-item
+  "Delete an application metadata-item. Always returns 204 NoContent. Idempotent."
+  [application-name key]
+  (persistence/delete-application-metadata-item application-name key)
+  {:status 204})
+
 (defroutes applications-routes
 
   (POST "/" req
@@ -136,7 +142,10 @@
        (get-application-metadata-item application key))
 
   (PUT "/:application/:key" [application key :as req]
-       (put-application-metadata-item application key req)))
+       (put-application-metadata-item application key req))
+
+  (DELETE "/:application/:key" [application key]
+          (delete-application-metadata-item application key)))
 
 (defroutes routes
   (context

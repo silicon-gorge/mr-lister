@@ -55,6 +55,16 @@
       (create-application new-app)
       {(keyword key) value})))
 
+(defn delete-application-metadata-item
+  [application-name key]
+  (when-let [app (get-application application-name)]
+    (let [kw (keyword key)
+          metadata (:metadata app)]
+        (when (not (nil? (kw metadata)))
+          (let [new-metadata (dissoc metadata kw)
+                new-app (assoc app :metadata (cheshire/generate-string new-metadata))]
+            (create-application new-app))))))
+
 (defn dynamo-health-check
   "Checks that we can talk to Dynamo and get a description of one of our tables."
   []
