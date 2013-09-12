@@ -88,9 +88,10 @@
 (defn- create-application
   "Create a new application from the contents of the given request."
   [req]
-  (let [body (:jsonbody req)
-        result (persistence/create-application body)]
-    (response body json-content-type 201)))
+  (let [body (:jsonbody req)]
+    (if-let [result (persistence/create-application body)]
+      (response body json-content-type 201)
+      (error-response (str "application named '" (:name body) "' already exists") 409))))
 
 (defn- list-applications
   "Get a list of all the stored applications."

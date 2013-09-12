@@ -127,6 +127,14 @@
           (let [response (client/post (url+ "/applications") {:body "{\"name\":\"myapp\"}" :throw-exceptions false})
                 body (read-body response)]
             response => (contains {:status 201}))))
+   
+   (fact "Create application returns '409' if application already exists."
+         (rest-driven
+           [(dynamo-get-request :table "onix-applications" :key "myapp")
+            (dynamo-get-response :item {"name" {"S" "myapp"}})]
+           (let [response (client/post (url+ "/applications") {:body "{\"name\":\"myapp\"}" :throw-exceptions false})
+                body (read-body response)]
+            response => (contains {:status 409}))))
 
    (fact "Create application fails with invalid json."
          (let [response (client/post (url+ "/applications") {:body "{\"key\":\"value\"" :throw-exceptions false})]

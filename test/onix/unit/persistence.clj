@@ -86,5 +86,5 @@
                          (provided
                           (persistence/get-application "app") => {:name "app"
                                                                   :metadata {:key "value"}}
-                          (persistence/create-application {:name "app"
+                          (persistence/create-or-update-application {:name "app"
                                                            :metadata "{}"}) => "something"))))

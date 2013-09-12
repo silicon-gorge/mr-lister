@@ -70,7 +70,7 @@
         (when (not (nil? (kw metadata)))
           (let [new-metadata (dissoc metadata kw)
                 new-app (assoc app :metadata (cheshire/generate-string new-metadata))]
-            (create-application new-app))))))
+            (create-or-update-application new-app))))))
 
 (defn dynamo-health-check
   "Checks that we can talk to Dynamo and get a description of one of our tables."
