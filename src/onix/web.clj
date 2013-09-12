@@ -66,6 +66,16 @@
 (def json-content-type "application/json;charset=UTF-8")
 (def text-plain-type "text/plain;charset=UTF-8")
 
+(def healthcheck-response
+  {:status 200
+   :headers {"Content-Type" "text/plain"}
+   :body "I am healthy. Thank you for asking."})
+
+(def healthcheck-error-response
+  {:status 500
+   :headers {"Content-Type" "text/plain"}
+   :body "I am unwell. Check my logs."})
+
 (def ^:dynamic *version* "none")
 (defn set-version! [version]
   (alter-var-root #'*version* (fn [_] version)))
@@ -159,10 +169,16 @@
         [] (status))
 
    (GET "/pokemon"
-        [] (response pokemon "text/plain;charset=UTF-8"))
+        [] (response pokemon text-plain-type))
 
    (context "/applications"
             [] applications-routes))
+  
+  (GET "/healthcheck" []
+    (let [dynamo-health (future (persistence/dynamo-health-check))]
+      (if @dynamo-health
+        healthcheck-response
+        healthcheck-error-response)))
 
   (route/not-found (error-response "Resource not found" 404)))
 
