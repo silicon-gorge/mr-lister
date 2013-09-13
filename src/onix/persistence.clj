@@ -48,6 +48,7 @@
     (create-or-update-application application)))
 
 (defn get-application-metadata-item
+  "Gets the metadata value corresponding to the given key for the given service. If either does not exist, 'nil' is returned."
   [application-name key]
   (when-let [app (get-application application-name)]
     (when-let [metadata (:metadata app)]
@@ -55,6 +56,7 @@
         {(keyword key) value}))))
 
 (defn update-application-metadata
+  "Updates or creates a metadata property with the given key and value, for the given application. If the application doesn't exist 'nil' is returned."
   [application-name key value]
   (when-let [app (get-application application-name)]
     (let [new-metadata (assoc (:metadata app) (keyword key) value)
@@ -63,6 +65,7 @@
       {(keyword key) value})))
 
 (defn delete-application-metadata-item
+  "Removes the metadata item with the given key from the given application, if it exists."
   [application-name key]
   (when-let [app (get-application application-name)]
     (let [kw (keyword key)
