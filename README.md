@@ -20,6 +20,8 @@ GET /1.x/ping (returns 'pong')
 
 GET /1.x/status (returns status of the service)
 
+GET /healthcheck (returns '200' or '500' depending whether the service is healthy)
+
 GET /1.x/applications (list applications)
 
 POST /1.x/applications (create a new application)
@@ -254,5 +256,35 @@ exist will always return the same successful response.
 ### Response Codes
 
 204 NoContent
+
+500 InternalServerError
+
+## Healthcheck
+
+### Resource Details
+
+GET /healthcheck
+
+Checks if the service is running and communicating with DynamoDB in AWS.
+
+### Example Request
+
+    GET http://onix.ent.nokia.com:8080/healthcheck/
+
+### Example Response 1
+
+    200 OK
+    Content-Type: text/plain;charset=UTF-8
+    I am healthy. Thank you for asking.
+
+### Example Response 2
+
+    500 InternalServerError
+    Content-Type: text/plain;charset=UTF-8
+    I am unwell. Check my logs.
+
+### Response Codes
+
+200 OK
 
 500 InternalServerError
