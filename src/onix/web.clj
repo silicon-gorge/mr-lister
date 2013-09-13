@@ -171,9 +171,16 @@
    (GET "/pokemon"
         [] (response pokemon text-plain-type))
 
+   (GET "/icon" []
+        {:status 200
+         :headers {"Content-Type" "image/jpeg"}
+         :body (-> (clojure.java.io/resource "onix.jpg")
+                   (.getFile)
+                   (java.io.FileInputStream.))})
+
    (context "/applications"
             [] applications-routes))
-  
+
   (GET "/healthcheck" []
     (let [dynamo-health (future (persistence/dynamo-health-check))]
       (if @dynamo-health

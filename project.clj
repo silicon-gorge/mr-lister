@@ -1,7 +1,7 @@
 (defproject onix "0.11-SNAPSHOT"
   :description "Onix service"
   :url "http://wikis.in.nokia.com/NokiaMusicArchitecture/Onix"
-  
+
 ;;; USEFUL COMMANDS
 
 ;;; lein start                       Starts up ring in auto-reload mode on port SERVICE_PORT (default 3000). Alias for: lein ring server-headless.
@@ -75,7 +75,7 @@
              "acceptance" ["midje" ":filter" "acceptance"]
              "start" ["ring" "server-headless"]
              "start-integration" ["with-profile" "integration" "ring" "server-headless"]}
-  
+
   :lein-release {:release-tasks [:clean :uberjar :pom :rpm]
                  :clojars-url "clojars@clojars.brislabs.com:"}
 
@@ -91,6 +91,8 @@
                  "http://rm.brislabs.com/nexus/content/groups/all-releases"}
 
   :uberjar-name "onix.jar"
+
+  :resource-paths ["shared"]
 
   :rpm {:name "onix"
         :summary "RPM for Onix service"
