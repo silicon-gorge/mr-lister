@@ -1,7 +1,5 @@
 # Nokia Entertainment Onix
 
-![onix](shared/onix.jpg)
-
 ## Introduction
 
 Onix is a RESTful web service that maintains a list of applications that
