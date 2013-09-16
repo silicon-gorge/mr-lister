@@ -1,6 +1,6 @@
 # Nokia Entertainment Onix
 
-<img src="http://img.pokemondb.net/artwork/onix.jpg" height="100" width="100"/>
+<img src="shared/onix.jpg" height="100" width="100"/>
 
 ## Introduction
 
