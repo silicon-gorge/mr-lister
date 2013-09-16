@@ -1,6 +1,6 @@
 # Nokia Entertainment Onix
 
-<img src="shared/onix.jpg" height="100" width="100"/>
+![onix](shared/onix.jpg)
 
 ## Introduction
 
