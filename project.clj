@@ -1,4 +1,4 @@
-(defproject onix "0.14"
+(defproject onix "0.15-SNAPSHOT"
   :description "Onix service"
   :url "http://wikis.in.nokia.com/NokiaMusicArchitecture/Onix"
 
