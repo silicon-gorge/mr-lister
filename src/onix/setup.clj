@@ -41,7 +41,7 @@
      (ReporterState/valueOf (env :service-graphite-enabled)))))
 
 (def version
-  (delay (if-let [path (.getResource (ClassLoader/getSystemClassLoader) "META-INF/maven/userhistoryonix/onix/pom.properties")]
+  (delay (if-let [path (.getResource (ClassLoader/getSystemClassLoader) "META-INF/maven/onix/onix/pom.properties")]
            ((read-file-to-properties path) "version")
            "localhost")))
 
