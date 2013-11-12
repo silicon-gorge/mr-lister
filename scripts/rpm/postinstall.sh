@@ -2,18 +2,18 @@
 
 if [ "$1" -le 1 ]
 then
-  /sbin/chkconfig --add jetty
+  /sbin/chkconfig --add onix
 else
-  /sbin/chkconfig --list jetty
+  /sbin/chkconfig --list onix
 fi
 
-mkdir -p /var/log/jetty
+mkdir -p /var/log/onix
 
-chown -R jetty:jetty /var/log/jetty
+chown -R onix:onix /var/log/onix
 
-ln -s /var/log/jetty /usr/local/jetty/log
+ln -s /var/log/onix /usr/local/onix/log
 
-chown jetty:jetty /usr/local/jetty
+chown onix:onix /usr/local/onix
 
 /bin/echo "postinstall script finished"
 exit 0

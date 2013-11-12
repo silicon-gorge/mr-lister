@@ -102,23 +102,23 @@
         :preremove {:scriptFile "scripts/rpm/preremove.sh"}
         :postremove {:scriptFile "scripts/rpm/postremove.sh"}
         :requires ["jdk >= 2000:1.6.0_31-fcs"]
-        :mappings [{:directory "/usr/local/jetty"
+        :mappings [{:directory "/usr/local/onix"
                     :filemode "444"
-                    :username "jetty"
-                    :groupname "jetty"
+                    :username "onix"
+                    :groupname "onix"
                     :sources {:source [{:location "target/onix.jar"}]}}
-                   {:directory "/usr/local/jetty/bin"
+                   {:directory "/usr/local/onix/bin"
                     :filemode "744"
-                    :username "jetty"
-                    :groupname "jetty"
+                    :username "onix"
+                    :groupname "onix"
                     :sources {:source [{:location "scripts/bin"}]}}
                    {:directory "/usr/local/deployment/onix/bin"
                     :filemode "744"
                     :sources {:source [{:location "scripts/dmt"}]}}
                    {:directory "/etc/rc.d/init.d"
                     :filemode "744"
-                    :username "jetty"
-                    :groupname "jetty"
-                    :sources {:source [{:location "scripts/service/jetty"}]}}]}
+                    :username "onix"
+                    :groupname "onix"
+                    :sources {:source [{:location "scripts/service/onix"}]}}]}
 
   :main onix.setup)
