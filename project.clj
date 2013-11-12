@@ -93,8 +93,6 @@
 
   :uberjar-name "onix.jar"
 
-  :resource-paths ["shared"]
-
   :rpm {:name "onix"
         :summary "RPM for Onix service"
         :copyright "Nokia 2013"
