@@ -14,10 +14,13 @@
   "Creates a DynamoDB client from the AWS Java SDK"
   (delay
    (do
-;     (prn "DYNAMO ENDPOINT" (env :dynamo-endpoint))
+;    (info "Dynamo entpoint: " (env :dynamo-endpoint))
      (aws/add-credentials)
-     (doto (AmazonDynamoDBClient. @aws/amazon-client-config)
-       (.setEndpoint (env :dynamo-endpoint))))))
+     (if (= (env :environment-name) "prod")
+       (doto (AmazonDynamoDBClient. (aws/get-assume-role-credentials) @aws/amazon-client-config)
+         (.setEndpoint (env :dynamo-endpoint)))
+       (doto (AmazonDynamoDBClient. @aws/amazon-client-config)
+         (.setEndpoint (env :dynamo-endpoint)))))))
 
 (defn create-or-update-application
   "Creates the given application in store."

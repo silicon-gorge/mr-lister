@@ -8,6 +8,7 @@ lib*
 dc-sdk.log
 .classpath
 .lein-deps-sum
+.nrepl-port
 .lein-repl-history
 .lein-plugins/
 .project

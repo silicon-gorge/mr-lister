@@ -50,4 +50,8 @@
         <documentation>Switch on production mode - disable reloading and stack traces from leaving the application</documentation>
     </item>
 
+   <item name="service.poke.role.arn" regex=".+" defaultValue=""arn:aws:iam::513894612423:role/onix">
+        <documentation>The role that needs to be assumed in prod for onix to be able to use dynamoDB in poke.</documentation>
+   </item>
+
 </configuration>

@@ -69,7 +69,8 @@
         :service-graphite-post-interval "1"
         :service-graphite-post-unit "MINUTES"
         :service-graphite-enabled "ENABLED"
-        :service-production "false"}
+        :service-production "false"
+        :service-poke-role-arn "arn:aws:iam::513894612423:role/onix"}
 
   :aliases { "autotest" ["midje" ":autotest" "src/onix" "test/onix" ":filter" "-slow"]
              "autounit" ["midje" ":autotest" "src/onix" "test/onix/unit"]
