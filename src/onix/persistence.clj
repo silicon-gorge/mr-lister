@@ -10,17 +10,29 @@
 
 (def applications-table "onix-applications")
 
+(defn create-dynamodb-client-with-credentials
+  []
+  (doto (AmazonDynamoDBClient. (aws/get-assume-role-credentials) @aws/amazon-client-config)
+    (.setEndpoint (env :dynamo-endpoint)))
+  )
+
 (def dynamo-client
   "Creates a DynamoDB client from the AWS Java SDK"
-  (delay
+  (atom
    (do
 ;    (info "Dynamo entpoint: " (env :dynamo-endpoint))
      (aws/add-credentials)
      (if (= (env :environment-name) "prod")
-       (doto (AmazonDynamoDBClient. (aws/get-assume-role-credentials) @aws/amazon-client-config)
-         (.setEndpoint (env :dynamo-endpoint)))
+       (create-dynamodb-client-with-credentials)
        (doto (AmazonDynamoDBClient. @aws/amazon-client-config)
          (.setEndpoint (env :dynamo-endpoint)))))))
+
+(defn update-dynamo-client-assume-role-credentials
+  "Creates a new dynamo client with updated credentials. For use in prod where the assume role
+   credentials only last for a 1 hour period"
+  []
+  (swap! dynamo-client
+         (create-dynamodb-client-with-credentials)))
 
 (defn create-or-update-application
   "Creates the given application in store."

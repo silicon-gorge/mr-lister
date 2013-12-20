@@ -34,7 +34,8 @@
                  [org.slf4j/jul-to-slf4j "1.7.5"]
                  [org.slf4j/slf4j-api "1.7.5"]
                  [ring-middleware-format "0.3.1"]
-                 [ring/ring-jetty-adapter "1.2.0"]]
+                 [ring/ring-jetty-adapter "1.2.0"]
+                 [overtone/at-at "1.2.0"]]
 
   :profiles {:dev {:dependencies [[com.github.rest-driver/rest-client-driver "1.1.32"
                                    :exclusions [org.slf4j/slf4j-nop

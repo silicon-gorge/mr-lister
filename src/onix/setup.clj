@@ -1,10 +1,12 @@
 (ns onix.setup
-    (:require [onix.web :as web]
+  (:require [onix.web :as web]
+            [onix.persistence :as persistence]
               [environ.core :refer [env]]
               [clojure.string :as cs :only (split)]
               [clojure.tools.logging :refer (info warn error)]
               [clojure.java.io :as io]
-              [ring.adapter.jetty :refer [run-jetty]])
+              [ring.adapter.jetty :refer [run-jetty]]
+              [overtone.at-at :as at])
     (:import (java.lang Integer Throwable)
              (java.util.logging LogManager)
              (com.yammer.metrics Metrics)
@@ -40,6 +42,13 @@
      (TimeUnit/valueOf (env :service-graphite-post-unit))
      (ReporterState/valueOf (env :service-graphite-enabled)))))
 
+(def credentials-refresh-timer-pool (delay (at/mk-pool)))
+(def thirty-minutes (* 1000 60 30))
+
+(defn start-credentials-refresh-timer []
+  (when (= (env :environment-name) "prod")
+    (at/every thirty-minutes persistence/update-dynamo-client-assume-role-credentials @credentials-refresh-timer-pool)))
+
 (def version
   (delay (if-let [path (.getResource (ClassLoader/getSystemClassLoader) "META-INF/maven/onix/onix/pom.properties")]
            ((read-file-to-properties path) "version")
@@ -48,7 +57,8 @@
 (defn setup []
   (web/set-version! @version)
   (configure-logging)
-  (start-graphite-reporting))
+  (start-graphite-reporting)
+  (start-credentials-refresh-timer))
 
 (def server (atom nil))
 
