@@ -46,7 +46,7 @@
 
 (def sts-client
   (delay
-   (doto (AWSSecurityTokenServiceClient. amazon-client-config)
+   (doto (AWSSecurityTokenServiceClient. @amazon-client-config)
      (.setEndpoint "https://sts.amazonaws.com"))))
 
 (def assume-role-request
