@@ -43,8 +43,7 @@
 
 (defn list-applications
   []
-  {:applications
-   (map :name (dynamo/lazy-scan applications-table {:conditions {} :attributes_to_get ["name"]} @dynamo-client))})
+  (map :name (dynamo/lazy-scan applications-table {:conditions {} :attributes_to_get ["name"]} @dynamo-client)))
 
 (defn get-application
   "Fetches the data for the application with the given name."
