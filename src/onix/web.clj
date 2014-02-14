@@ -109,7 +109,7 @@
   (->
    (persistence/list-applications)
    sort
-   (hash-map :applications)
+   ((fn [a] {:applications a}))
    (response json-content-type)))
 
 (defn- get-application
