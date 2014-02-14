@@ -108,6 +108,7 @@
   []
   (->
    (persistence/list-applications)
+   sort
    (response json-content-type)))
 
 (defn- get-application
