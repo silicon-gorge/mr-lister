@@ -12,44 +12,44 @@
 ;;; lein acceptance                  Runs the acceptance tests (useful for CI server). Alias for: lein midje :filter acceptance.
 ;;; lein midje :filter unit          Run unit tests
 
-  :dependencies [[ch.qos.logback/logback-classic "1.0.13"]
-                 [cheshire "5.2.0"]
-                 [clj-http "0.7.6" :exclusions [commons-logging]]
+  :dependencies [[ch.qos.logback/logback-classic "1.1.1"]
+                 [cheshire "5.3.1"]
+                 [clj-http "0.7.9"]
                  [clj-time "0.6.0"]
-                 [com.amazonaws/aws-java-sdk "1.5.5" :exclusions [commons-logging]]
-                 [com.ovi.common.logging/logback-appender "0.0.45" :exclusions [commons-logging]]
-                 [com.ovi.common.metrics/metrics-graphite "2.1.21"]
+                 [com.amazonaws/aws-java-sdk "1.7.2"]
+                 [com.ovi.common.logging/logback-appender "0.0.45"]
+                 [com.ovi.common.metrics/metrics-graphite "2.1.23"]
                  [com.yammer.metrics/metrics-logback "2.2.0"]
-                 [compojure "1.1.5" :exclusions [javax.servlet/servlet-api]]
+                 [compojure "1.1.6" :exclusions [javax.servlet/servlet-api]]
                  [environ "0.4.0"]
                  [metrics-clojure "1.0.1"]
                  [metrics-clojure-ring "1.0.1"]
-                 [nokia/ring-utils "1.0.1"]
+                 [nokia/instrumented-ring-jetty-adapter "0.1.8"]
+                 [nokia/ring-utils "1.2.1"]
                  [org.clojure/clojure "1.5.1"]
-                 [org.clojure/data.json "0.2.3"]
+                 [org.clojure/data.json "0.2.4"]
                  [org.clojure/data.xml "0.0.7"]
                  [org.clojure/data.zip "0.1.1"]
                  [org.clojure/tools.logging "0.2.6"]
-                 [org.slf4j/jcl-over-slf4j "1.7.5"]
-                 [org.slf4j/jul-to-slf4j "1.7.5"]
-                 [org.slf4j/slf4j-api "1.7.5"]
-                 [ring-middleware-format "0.3.1"]
-                 [ring/ring-jetty-adapter "1.2.0"]
-                 [overtone/at-at "1.2.0"]]
+                 [org.eclipse.jetty/jetty-server "8.1.14.v20131031"]
+                 [org.slf4j/jcl-over-slf4j "1.7.6"]
+                 [org.slf4j/jul-to-slf4j "1.7.6"]
+                 [org.slf4j/log4j-over-slf4j "1.7.6"]
+                 [org.slf4j/slf4j-api "1.7.6"]
+                 [overtone/at-at "1.2.0"]
+                 [ring-middleware-format "0.3.2"]]
 
-  :profiles {:dev {:dependencies [[com.github.rest-driver/rest-client-driver "1.1.32"
-                                   :exclusions [org.slf4j/slf4j-nop
-                                                javax.servlet/servlet-api
-                                                org.eclipse.jetty.orbit/javax.servlet]]
-                                  [clj-http-fake "0.4.1"]
-                                  [junit "4.11"]
-                                  [midje "1.5.1"]
-                                  [rest-cljer "0.1.7"]]
+  :exclusions [commons-logging
+               log4j]
+
+  :profiles {:dev {:dependencies [[midje "1.6.2"]
+                                  [rest-cljer "0.1.11" :exclusions [javax.servlet/servlet-api
+                                                                    org.eclipse.jetty.orbit/javax.servlet]]]
                    :plugins [[lein-rpm "0.0.5"]
-                             [lein-midje "3.0.1"]
+                             [lein-midje "3.1.3"]
                              [jonase/kibit "0.0.8"]]}}
 
-  :plugins [[lein-ring "0.8.6"]
+  :plugins [[lein-ring "0.8.10"]
             [lein-environ "0.4.0"]
             [lein-release "1.0.73"]]
 

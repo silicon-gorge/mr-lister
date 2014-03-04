@@ -47,7 +47,7 @@
 
 (defn dynamo-describe-response
   [table-name]
-  {:content-type "application/x-amz-json- 1.0"
+  {:content-type "application/x-amz-json-1.0"
    :status 200
    :body (json/generate-string {:Table {:TableName table-name}})})
 
@@ -127,7 +127,7 @@
           (let [response (client/post (url+ "/applications") {:body "{\"name\":\"myapp\"}" :throw-exceptions false})
                 body (read-body response)]
             response => (contains {:status 201}))))
-   
+
    (fact "Create application returns '409' if application already exists."
          (rest-driven
            [(dynamo-get-request :table "onix-applications" :key "myapp")
