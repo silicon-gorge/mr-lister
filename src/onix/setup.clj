@@ -1,21 +1,18 @@
 (ns onix.setup
-  (:require [onix.web :as web]
+  (:require [clojure.java.io :as io]
+            [clojure.string :as cs :only (split)]
+            [clojure.tools.logging :refer (info warn error)]
+            [environ.core :refer [env]]
+            [nokia.adapter.instrumented-jetty :refer [run-jetty]]
             [onix.persistence :as persistence]
-              [environ.core :refer [env]]
-              [clojure.string :as cs :only (split)]
-              [clojure.tools.logging :refer (info warn error)]
-              [clojure.java.io :as io]
-              [nokia.adapter.instrumented-jetty :refer [run-jetty]]
-              [overtone.at-at :as at])
-    (:import (java.lang Integer Throwable)
-             (java.util.logging LogManager)
-             (com.yammer.metrics Metrics)
-             (com.yammer.metrics.core MetricName)
-             (com.ovi.common.metrics.graphite GraphiteReporterFactory GraphiteName ReporterState)
-             (com.ovi.common.metrics HostnameFactory)
-             (org.slf4j.bridge SLF4JBridgeHandler)
-             (java.util.concurrent TimeUnit))
-    (:gen-class))
+            [onix.web :as web])
+  (:import (com.ovi.common.metrics HostnameFactory)
+           (com.ovi.common.metrics.graphite GraphiteReporterFactory GraphiteName ReporterState)
+           (java.lang Integer Throwable)
+           (java.util.concurrent TimeUnit)
+           (java.util.logging LogManager)
+           (org.slf4j.bridge SLF4JBridgeHandler))
+  (:gen-class))
 
 (defn read-file-to-properties [file-name]
   (with-open [^java.io.Reader reader (io/reader file-name)]
@@ -25,7 +22,6 @@
 
 (defn configure-logging []
   (.reset (LogManager/getLogManager))
-  ;Route all java.util.logging log statements to slf4j
   (SLF4JBridgeHandler/install))
 
 (defn start-graphite-reporting []
@@ -42,13 +38,6 @@
      (TimeUnit/valueOf (env :service-graphite-post-unit))
      (ReporterState/valueOf (env :service-graphite-enabled)))))
 
-(def credentials-refresh-timer-pool (delay (at/mk-pool)))
-(def thirty-minutes (* 1000 60 30))
-
-(defn start-credentials-refresh-timer []
-  (when (= (env :environment-name) "prod")
-    (at/every thirty-minutes persistence/update-dynamo-client-assume-role-credentials @credentials-refresh-timer-pool)))
-
 (def version
   (delay (if-let [path (.getResource (ClassLoader/getSystemClassLoader) "META-INF/maven/onix/onix/pom.properties")]
            ((read-file-to-properties path) "version")
@@ -57,8 +46,7 @@
 (defn setup []
   (web/set-version! @version)
   (configure-logging)
-  (start-graphite-reporting)
-  (start-credentials-refresh-timer))
+  (start-graphite-reporting))
 
 (def server (atom nil))
 

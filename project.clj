@@ -12,38 +12,41 @@
 ;;; lein acceptance                  Runs the acceptance tests (useful for CI server). Alias for: lein midje :filter acceptance.
 ;;; lein midje :filter unit          Run unit tests
 
-  :dependencies [[ch.qos.logback/logback-classic "1.1.1"]
+  :dependencies [[amazonica "0.2.16"]
+                 [ch.qos.logback/logback-classic "1.1.2"]
                  [cheshire "5.3.1"]
                  [clj-http "0.7.9"]
-                 [clj-time "0.6.0"]
-                 [com.amazonaws/aws-java-sdk "1.7.2"]
+                 [clj-time "0.7.0"]
+                 [com.amazonaws/aws-java-sdk "1.7.12"]
                  [com.ovi.common.logging/logback-appender "0.0.45"]
-                 [com.ovi.common.metrics/metrics-graphite "2.1.23"]
+                 [com.ovi.common.metrics/metrics-graphite "2.1.25"]
+                 [com.taoensso/faraday "1.4.0"]
                  [com.yammer.metrics/metrics-logback "2.2.0"]
-                 [compojure "1.1.6" :exclusions [javax.servlet/servlet-api]]
-                 [environ "0.4.0"]
-                 [metrics-clojure "1.0.1"]
-                 [metrics-clojure-ring "1.0.1"]
-                 [nokia/instrumented-ring-jetty-adapter "0.1.8"]
-                 [nokia/ring-utils "1.2.1"]
-                 [org.clojure/clojure "1.5.1"]
+                 [compojure "1.1.8" :exclusions [javax.servlet/servlet-api]]
+                 [environ "0.5.0"]
+                 [metrics-clojure "1.1.0"]
+                 [metrics-clojure-ring "1.1.0"]
+                 [nokia/instrumented-ring-jetty-adapter "0.1.9"]
+                 [nokia/ring-utils "1.2.4"]
+                 [org.clojure/clojure "1.6.0"]
+                 [org.clojure/core.memoize "0.5.6"]
                  [org.clojure/data.json "0.2.4"]
                  [org.clojure/data.xml "0.0.7"]
                  [org.clojure/data.zip "0.1.1"]
                  [org.clojure/tools.logging "0.2.6"]
-                 [org.eclipse.jetty/jetty-server "8.1.14.v20131031"]
-                 [org.slf4j/jcl-over-slf4j "1.7.6"]
-                 [org.slf4j/jul-to-slf4j "1.7.6"]
-                 [org.slf4j/log4j-over-slf4j "1.7.6"]
-                 [org.slf4j/slf4j-api "1.7.6"]
-                 [overtone/at-at "1.2.0"]
+                 [org.eclipse.jetty/jetty-server "8.1.15.v20140411"]
+                 [org.slf4j/jcl-over-slf4j "1.7.7"]
+                 [org.slf4j/jul-to-slf4j "1.7.7"]
+                 [org.slf4j/log4j-over-slf4j "1.7.7"]
+                 [org.slf4j/slf4j-api "1.7.7"]
+                 [ring-json-params "0.1.3"]
                  [ring-middleware-format "0.3.2"]]
 
   :exclusions [commons-logging
                log4j]
 
-  :profiles {:dev {:dependencies [[midje "1.6.2"]
-                                  [rest-cljer "0.1.11" :exclusions [javax.servlet/servlet-api
+  :profiles {:dev {:dependencies [[midje "1.6.3"]
+                                  [rest-cljer "0.1.12" :exclusions [javax.servlet/servlet-api
                                                                     org.eclipse.jetty.orbit/javax.servlet]]]
                    :plugins [[lein-rpm "0.0.5"]
                              [lein-midje "3.1.3"]
@@ -53,13 +56,11 @@
             [lein-environ "0.4.0"]
             [lein-release "1.0.73"]]
 
-  ;; development token values (settings correct for integrating with our AWS entdev environment).
-  :env {:aws-access-key nil ; for local dev, you need to have your own AWS credentials set up.
+  :env {:aws-access-key nil
         :aws-secret-key nil
         :aws-http-proxy-host "nokes.nokia.com"
         :aws-http-proxy-port "8080"
         :dynamo-endpoint "http://dynamodb.eu-west-1.amazonaws.com"
-
         :environment-name "Dev"
         :service-name "onix"
         :service-port "8080"
@@ -113,9 +114,6 @@
                     :username "onix"
                     :groupname "onix"
                     :sources {:source [{:location "scripts/bin"}]}}
-                   {:directory "/usr/local/deployment/onix/bin"
-                    :filemode "744"
-                    :sources {:source [{:location "scripts/dmt"}]}}
                    {:directory "/etc/rc.d/init.d"
                     :filemode "744"
                     :username "onix"
