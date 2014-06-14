@@ -30,8 +30,9 @@
                                                                                                                        :secret-key ..secret-key..}}))
 
 (fact "that creating standard credentials does what we want"
-      (create-standard-credentials) => (contains {:access-key anything
-                                                  :secret-key anything}))
+      (create-standard-credentials) => anything
+      (provided
+       (sts/assume-role anything) => anything :times 0))
 
 (fact "that creating an application which already exists returns a falsey value"
       (create-application {:name "dummy"}) => falsey
