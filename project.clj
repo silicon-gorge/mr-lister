@@ -15,9 +15,7 @@
   :dependencies [[amazonica "0.2.16"]
                  [ch.qos.logback/logback-classic "1.1.2"]
                  [cheshire "5.3.1"]
-                 [clj-http "0.7.9"]
                  [clj-time "0.7.0"]
-                 [com.amazonaws/aws-java-sdk "1.7.12"]
                  [com.ovi.common.logging/logback-appender "0.0.45"]
                  [com.ovi.common.metrics/metrics-graphite "2.1.25"]
                  [com.taoensso/faraday "1.4.0"]
@@ -45,15 +43,13 @@
   :exclusions [commons-logging
                log4j]
 
-  :profiles {:dev {:dependencies [[midje "1.6.3"]
-                                  [rest-cljer "0.1.12" :exclusions [javax.servlet/servlet-api
-                                                                    org.eclipse.jetty.orbit/javax.servlet]]]
+  :profiles {:dev {:dependencies [[midje "1.6.3"]]
                    :plugins [[lein-rpm "0.0.5"]
                              [lein-midje "3.1.3"]
                              [jonase/kibit "0.0.8"]]}}
 
   :plugins [[lein-ring "0.8.10"]
-            [lein-environ "0.4.0"]
+            [lein-environ "0.5.0"]
             [lein-release "1.0.73"]]
 
   :env {:aws-access-key nil
