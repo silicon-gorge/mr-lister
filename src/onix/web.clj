@@ -144,14 +144,6 @@
   (context "/1.x"
            []
 
-           (GET "/ping"
-                []
-                "pong")
-
-           (GET "/status"
-                []
-                (healthcheck))
-
            (GET "/pokemon"
                 []
                 (response pokemon/image text-plain-type))
