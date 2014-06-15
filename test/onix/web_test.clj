@@ -48,12 +48,20 @@
 (fact "that our healthcheck gives a 200 status if things are healthy"
       (request :get "/healthcheck") => (contains {:status 200})
       (provided
-       (persistence/dynamo-health-check) => true))
+       (persistence/applications-table-healthcheck) => true
+       (persistence/environments-table-healthcheck) => true))
 
-(fact "that our healthcheck gives a 500 status if things aren't healthy"
+(fact "that our healthcheck gives a 500 status if the applications table dependency isn't healthy"
       (request :get "/healthcheck") => (contains {:status 500})
       (provided
-       (persistence/dynamo-health-check) => false))
+       (persistence/applications-table-healthcheck) => false
+       (persistence/environments-table-healthcheck) => true))
+
+(fact "that our healthcheck gives a 500 status if the environments table dependency isn't healthy"
+      (request :get "/healthcheck") => (contains {:status 500})
+      (provided
+       (persistence/applications-table-healthcheck) => true
+       (persistence/environments-table-healthcheck) => false))
 
 (fact "that our pokémon resource is awesome"
       (request :get "/1.x/pokemon") => (contains {:status 200}))
@@ -118,3 +126,21 @@
       (request :delete "/1.x/applications/onix/property") => (contains {:status 204})
       (provided
        (persistence/delete-application-metadata-item "onix" "property") => anything))
+
+(fact "that listing environments does the right thing"
+      (request :get "/1.x/environments") => (contains {:body {:environments ["env1" "env2" "env3"]}})
+      (provided
+       (persistence/list-environments) => ["env1" "env2" "env3"]))
+
+(fact "that getting an environment which doesn't exist is a 404"
+      (request :get "/1.x/environments/environment") => (contains {:status 404})
+      (provided
+       (persistence/get-environment "environment") => nil))
+
+(fact "that getting an environment which exists is a 200"
+      (request :get "/1.x/environments/environment") => (contains {:body {:name "environment"
+                                                                          :metadata {:anything "else"}}
+                                                                   :status 200})
+      (provided
+       (persistence/get-environment "environment") => {:name "environment"
+                                                       :metadata {:anything "else"}}))

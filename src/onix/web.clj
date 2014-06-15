@@ -25,16 +25,6 @@
 (def json-content-type "application/json;charset=UTF-8")
 (def text-plain-type "text/plain;charset=UTF-8")
 
-(def healthcheck-response
-  {:status 200
-   :headers {"Content-Type" "text/plain"}
-   :body "I am healthy. Thank you for asking."})
-
-(def healthcheck-error-response
-  {:status 500
-   :headers {"Content-Type" "text/plain"}
-   :body "I am unwell. Check my logs."})
-
 (def ^:dynamic *version* "none")
 (defn set-version!
   [version]
@@ -46,15 +36,17 @@
    :headers {"Content-Type" content-type}
    :body data})
 
-(defn status
+(defn healthcheck
   []
-  (let [dynamo-ok (persistence/dynamo-health-check)]
-    (->
-     {:name "onix"
-      :version *version*
-      :success dynamo-ok
-      :dependencies [{:name "dynamodb" :success dynamo-ok}]}
-     (response json-content-type))))
+  (let [applications-ok? (future (persistence/applications-table-healthcheck))
+        environments-ok? (future (persistence/environments-table-healthcheck))
+        all-ok? (and @applications-ok? @environments-ok?)]
+    (-> {:name "onix"
+         :version *version*
+         :success all-ok?
+         :dependencies [{:name "dynamo-applications" :success @applications-ok?}
+                        {:name "dynamo-environments" :success @environments-ok?}]}
+        (response json-content-type (if all-ok? 200 500)))))
 
 (defn- create-application
   "Create a new application from the contents of the given request."
@@ -98,6 +90,20 @@
   (persistence/delete-application-metadata-item application-name key)
   {:status 204})
 
+(defn- list-environments
+  "Get a list of all the stored environments."
+  []
+  (-> (persistence/list-environments)
+      sort
+      ((fn [e] {:environments e}))
+      (response json-content-type)))
+
+(defn- get-environment
+  [environment-name]
+  (if-let [environment (persistence/get-environment environment-name)]
+    (response environment json-content-type)
+    (error-response (str "Environment named: '" environment-name "' does not exist.") 404)))
+
 (defroutes applications-routes
 
   (GET "/"
@@ -124,6 +130,16 @@
           [application key]
           (delete-application-metadata-item application key)))
 
+(defroutes environments-routes
+
+  (GET "/"
+       []
+       (list-environments))
+
+  (GET "/:environment"
+       [environment]
+       (get-environment environment)))
+
 (defroutes routes
   (context "/1.x"
            []
@@ -134,7 +150,7 @@
 
            (GET "/status"
                 []
-                (status))
+                (healthcheck))
 
            (GET "/pokemon"
                 []
@@ -149,7 +165,11 @@
 
            (context "/applications"
                     []
-                    applications-routes))
+                    applications-routes)
+
+           (context "/environments"
+                    []
+                    environments-routes))
 
   (GET "/ping"
        []
@@ -159,10 +179,7 @@
 
   (GET "/healthcheck"
        []
-       (let [dynamo-health (future (persistence/dynamo-health-check))]
-         (if @dynamo-health
-           healthcheck-response
-           healthcheck-error-response)))
+       (healthcheck))
 
   (route/not-found (error-response "Resource not found" 404)))
 

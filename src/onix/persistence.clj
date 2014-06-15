@@ -9,6 +9,9 @@
 (def applications-table
   :onix-applications)
 
+(def environments-table
+  :onix-environments)
+
 (defn raw-proxy-port
   []
   (env :aws-http-proxy-port))
@@ -97,12 +100,31 @@
               new-app (assoc app :metadata (cheshire/generate-string new-metadata))]
           (upsert-application new-app))))))
 
-(defn dynamo-health-check
-  "Checks that we can talk to Dynamo and get a description of one of our tables."
+(defn applications-table-healthcheck
+  "Checks that we can talk to Dynamo and get a description of our applications tables."
   []
   (try
-    (far/describe-table (create-creds) applications-table)
-    true
+    (some? (far/describe-table (create-creds) applications-table))
+    (catch Exception e
+      (warn e "Exception while describing table for healthcheck")
+      false)))
+
+(defn list-environments
+  []
+  (map :name (far/scan (create-creds) environments-table {:return [:name]})))
+
+(defn get-environment
+  [environment-name]
+  (when-let [environment (far/get-item (create-creds) environments-table {:name environment-name})]
+    (if-let [metadata (cheshire/parse-string (:metadata environment) true)]
+      (assoc environment :metadata metadata)
+      environment)))
+
+(defn environments-table-healthcheck
+  "Checks that we can talk to Dynamo and get a description of our environments tables."
+  []
+  (try
+    (some? (far/describe-table (create-creds) environments-table))
     (catch Exception e
       (warn e "Exception while describing table for healthcheck")
       false)))

@@ -50,13 +50,19 @@
       (provided
        (far/scan anything applications-table {:return [:name]}) => [{:name "app1"} {:name "app2"} {:name "app3"}]))
 
-(fact "that fetching an app which exists gets the application including its metadata"
+(fact "that fetching an application which exists gets the application including its metadata"
       (get-application "dummy") => {:name "dummy"
                                     :metadata {:size "big" :colour "red"}}
       (provided
        (far/get-item anything applications-table {:name "dummy"}) => {:name "dummy"
                                                                       :metadata "{\"size\":\"big\",\"colour\":\"red\"}"}))
-(fact "that fetching a app which does not exist returns nil"
+
+(fact "that fetching an application which exists but has no metadata works"
+      (get-application "dummy") => {:name "dummy"}
+      (provided
+       (far/get-item anything applications-table {:name "dummy"}) => {:name "dummy"}))
+
+(fact "that fetching an application which does not exist returns nil"
       (get-application "dummy") => nil
       (provided
        (far/get-item anything applications-table {:name "dummy"}) => nil))
@@ -123,12 +129,54 @@
        (upsert-application {:name "app"
                             :metadata "{}"}) => "something"))
 
-(fact "that our trusty healthcheck is truthy when things are good"
-      (dynamo-health-check) => truthy
+(fact "that our trusty applications table healthcheck is true when things are good"
+      (applications-table-healthcheck) => true
       (provided
        (far/describe-table anything applications-table) => {}))
 
-(fact "that our delightful healthcheck is falsey when things are bad"
-      (dynamo-health-check) => falsey
+(fact "that our shiny applications table healthcheck is false when nothing comes back from the describe-table call"
+      (applications-table-healthcheck) => false
+      (provided
+       (far/describe-table anything applications-table) => nil))
+
+(fact "that our delightful applications table healthcheck is false when things are bad"
+      (applications-table-healthcheck) => false
       (provided
        (far/describe-table anything applications-table) =throws=> (ex-info "Boom" {})))
+
+(fact "that listing environments does what we expect"
+      (list-environments) => ["env1" "env2" "env3"]
+      (provided
+       (far/scan anything environments-table {:return [:name]}) => [{:name "env1"} {:name "env2"} {:name "env3"}]))
+
+(fact "that fetching an environment which exists gets the environment including its metadata"
+      (get-environment "dummy") => {:name "dummy"
+                                    :metadata {:size "big" :colour "red"}}
+      (provided
+       (far/get-item anything environments-table {:name "dummy"}) => {:name "dummy"
+                                                                      :metadata "{\"size\":\"big\",\"colour\":\"red\"}"}))
+
+(fact "that fetching an environment which exists but has no metadata works"
+      (get-environment "dummy") => {:name "dummy"}
+      (provided
+       (far/get-item anything environments-table {:name "dummy"}) => {:name "dummy"}))
+
+(fact "that fetching an environment which does not exist returns nil"
+      (get-environment "dummy") => nil
+      (provided
+       (far/get-item anything environments-table {:name "dummy"}) => nil))
+
+(fact "that our eminent environments table healthcheck is true when things are good"
+      (environments-table-healthcheck) => true
+      (provided
+       (far/describe-table anything environments-table) => {}))
+
+(fact "that our brilliant environments table healthcheck is false when nothing comes back from the describe-table call"
+      (environments-table-healthcheck) => false
+      (provided
+       (far/describe-table anything environments-table) => nil))
+
+(fact "that our splendid environments table healthcheck is false when things are bad"
+      (environments-table-healthcheck) => false
+      (provided
+       (far/describe-table anything environments-table) =throws=> (ex-info "Boom" {})))
