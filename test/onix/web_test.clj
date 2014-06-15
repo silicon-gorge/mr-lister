@@ -11,6 +11,15 @@
   {:body (string-input-stream (json/encode raw-body))
    :headers {"content-type" "application/json"}})
 
+(defn- streamed-body?
+  [{:keys [body]}]
+  (instance? java.io.InputStream body))
+
+(defn- json-response?
+  [{:keys [headers]}]
+  (when-let [content-type (get headers "Content-Type")]
+    (re-find #"^application/(vnd.+)?json" content-type)))
+
 (defn request
   "Creates a compojure request map and applies it to our application.
    Accepts method, resource and optionally an extended map"
@@ -18,14 +27,20 @@
                        :or {:body nil
                             :headers {}
                             :params {}}}]]
-  (let [{:keys [body] :as res} (app {:request-method method
-                                     :body body
-                                     :uri resource
-                                     :params params
-                                     :headers headers})]
-    (cond-> res
-            (instance? java.io.InputStream body)
-            (assoc :body (json/parse-string (slurp body) true)))))
+  (let [response (app {:request-method method
+                       :body body
+                       :uri resource
+                       :params params
+                       :headers headers})]
+    (cond-> response
+            (streamed-body? response) (update-in [:body] slurp)
+            (json-response? response) (update-in [:body] (fn [b] (json/parse-string b true))))))
+
+(fact "that we can set the version"
+      (set-version! "0.2") => anything
+      *version* => "0.2"
+      (set-version! "something") => anything
+      *version* => "something")
 
 (fact "that ping pongs"
       (:body (request :get "/ping")) => "pong")
@@ -42,6 +57,9 @@
 
 (fact "that our pokémon resource is awesome"
       (:status (request :get "/1.x/pokemon")) => 200)
+
+(fact "that our icon resource is awesome"
+      (:status (request :get "/1.x/icon")) => 200)
 
 (fact "that creating an application successfully does the right thing"
       (:status (request :post "/1.x/applications" (to-json {:name "something"}))) => 201

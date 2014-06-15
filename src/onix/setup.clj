@@ -14,17 +14,20 @@
            (org.slf4j.bridge SLF4JBridgeHandler))
   (:gen-class))
 
-(defn read-file-to-properties [file-name]
+(defn read-file-to-properties
+  [file-name]
   (with-open [^java.io.Reader reader (io/reader file-name)]
     (let [props (java.util.Properties.)]
       (.load props reader)
       (into {} (for [[k v] props] [k v])))))
 
-(defn configure-logging []
+(defn configure-logging
+  []
   (.reset (LogManager/getLogManager))
   (SLF4JBridgeHandler/install))
 
-(defn start-graphite-reporting []
+(defn start-graphite-reporting
+  []
   (let [graphite-prefix (new GraphiteName
                              (into-array Object
                                          [(env :environment-name)
@@ -43,25 +46,33 @@
            ((read-file-to-properties path) "version")
            "localhost")))
 
-(defn setup []
+(defn setup
+  []
   (web/set-version! @version)
   (configure-logging)
   (start-graphite-reporting))
 
-(def server (atom nil))
+(def server
+  (atom nil))
 
-(defn start-server []
+(defn start-server
+  []
   (run-jetty #'web/app {:port (Integer. (env :service-port))
                         :join? false
                         :stacktraces? (not (Boolean/valueOf (env :service-production)))
                         :auto-reload? (not (Boolean/valueOf (env :service-production)))}))
 
-(defn start []
+(defn start
+  []
   (do
     (setup)
     (reset! server (start-server))))
 
-(defn stop [] (if-let [server @server] (.stop server)))
+(defn stop
+  []
+  (if-let [server @server]
+    (.stop server)))
 
-(defn -main [& args]
+(defn -main
+  [& args]
   (start))

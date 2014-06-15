@@ -36,10 +36,12 @@
    :body "I am unwell. Check my logs."})
 
 (def ^:dynamic *version* "none")
-(defn set-version! [version]
+(defn set-version!
+  [version]
   (alter-var-root #'*version* (fn [_] version)))
 
-(defn response [data content-type & [status]]
+(defn response
+  [data content-type & [status]]
   {:status (or status 200)
    :headers {"Content-Type" content-type}
    :body data})
@@ -64,11 +66,10 @@
 (defn- list-applications
   "Get a list of all the stored applications."
   []
-  (->
-   (persistence/list-applications)
-   sort
-   ((fn [a] {:applications a}))
-   (response json-content-type)))
+  (-> (persistence/list-applications)
+      sort
+      ((fn [a] {:applications a}))
+      (response json-content-type)))
 
 (defn- get-application
   "Returns the application with the given name, or '404' if it doesn't exist."
@@ -99,56 +100,69 @@
 
 (defroutes applications-routes
 
-  (GET "/" []
+  (GET "/"
+       []
        (list-applications))
 
-  (POST "/" [:as {application :body-params}]
+  (POST "/"
+        [:as {application :body-params}]
         (create-application application))
 
-  (GET "/:application" [application]
+  (GET "/:application"
+       [application]
        (get-application application))
 
-  (GET "/:application/:key" [application key]
+  (GET "/:application/:key"
+       [application key]
        (get-application-metadata-item application key))
 
-  (PUT "/:application/:key" [application key value]
+  (PUT "/:application/:key"
+       [application key value]
        (put-application-metadata-item application key value))
 
-  (DELETE "/:application/:key" [application key]
+  (DELETE "/:application/:key"
+          [application key]
           (delete-application-metadata-item application key)))
 
 (defroutes routes
-  (context
-   "/1.x" []
+  (context "/1.x"
+           []
 
-   (GET "/ping"
-        [] "pong")
+           (GET "/ping"
+                []
+                "pong")
 
-   (GET "/status"
-        [] (status))
+           (GET "/status"
+                []
+                (status))
 
-   (GET "/pokemon"
-        [] (response pokemon/image text-plain-type))
+           (GET "/pokemon"
+                []
+                (response pokemon/image text-plain-type))
 
-   (GET "/icon" []
-        {:status 200
-         :headers {"Content-Type" "image/jpeg"}
-         :body (-> (clojure.java.io/resource "onix.jpg")
-                   (clojure.java.io/input-stream))})
+           (GET "/icon"
+                []
+                {:status 200
+                 :headers {"Content-Type" "image/jpeg"}
+                 :body (-> (clojure.java.io/resource "onix.jpg")
+                           (clojure.java.io/input-stream))})
 
-   (context "/applications"
-            [] applications-routes))
+           (context "/applications"
+                    []
+                    applications-routes))
 
-  (GET "/ping" []
+  (GET "/ping"
+       []
        {:status 200
         :headers {"Content-Type" "text/plain"}
         :body "pong"})
 
-  (GET "/healthcheck" []
-    (let [dynamo-health (future (persistence/dynamo-health-check))]
-      (if @dynamo-health
-        healthcheck-response
-        healthcheck-error-response)))
+  (GET "/healthcheck"
+       []
+       (let [dynamo-health (future (persistence/dynamo-health-check))]
+         (if @dynamo-health
+           healthcheck-response
+           healthcheck-error-response)))
 
   (route/not-found (error-response "Resource not found" 404)))
 
