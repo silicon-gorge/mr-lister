@@ -19,7 +19,8 @@
              [pokemon :as pokemon]]
             [ring.middleware
              [format-params :refer [wrap-json-kw-params]]
-             [format-response :refer [wrap-json-response]]]))
+             [format-response :refer [wrap-json-response]]
+             [params :refer [wrap-params]]]))
 
 (def json-content-type "application/json;charset=UTF-8")
 (def text-plain-type "text/plain;charset=UTF-8")
@@ -156,6 +157,7 @@
       (instrument)
       (wrap-error-handling)
       (wrap-ignore-trailing-slash)
-      (wrap-json-kw-params)
       (wrap-json-response)
+      (wrap-json-kw-params)
+      (wrap-params)
       (expose-metrics-as-json)))
