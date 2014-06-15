@@ -31,22 +31,22 @@ done
 IFS="$(echo -e " ")"
 
 SERVICE_PORT=${SERVICE_PORT:-"8080"}
-STATUS_PATH=${SERVICE_STATUS_PATH:-"/healthcheck"}
+HEALTHCHECK_PATH=${SERVICE_HEALTHCHECK_PATH:-"/healthcheck"}
 SERVICE_JETTY_START_TIMEOUT_SECONDS=${SERVICE_JETTY_START_TIMEOUT_SECONDS:-"60"}
 
 nohup java $SERVICE_JVMARGS -Dservice.logging.path=${SERVICE_LOGGING_PATH} -jar $JAR_NAME > $LOG_FILE 2> $ERR_FILE < /dev/null &
 
-statusUrl=http://localhost:$SERVICE_PORT$STATUS_PATH
+healthcheckUrl=http://localhost:$SERVICE_PORT$HEALTHCHECK_PATH
 waitTimeout=$SERVICE_JETTY_START_TIMEOUT_SECONDS
 sleepCounter=0
 sleepIncrement=2
 
 echo "Giving Onix $waitTimeout seconds to start successfully"
-echo "Using $statusUrl to determine service status"
+echo "Using $healthcheckUrl to determine service health"
 
 retVal=0
 
-until [ `curl --write-out %{http_code} --silent --output /dev/null $statusUrl` -eq 200 ]
+until [ `curl --write-out %{http_code} --silent --output /dev/null $healthcheckUrl` -eq 200 ]
 do
   if [ $sleepCounter -ge $waitTimeout ]
   then
