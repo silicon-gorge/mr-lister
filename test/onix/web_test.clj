@@ -43,79 +43,78 @@
       *version* => "something")
 
 (fact "that ping pongs"
-      (:body (request :get "/ping")) => "pong")
+      (request :get "/ping") => (contains {:body "pong"}))
 
 (fact "that our healthcheck gives a 200 status if things are healthy"
-      (:status (request :get "/healthcheck")) => 200
+      (request :get "/healthcheck") => (contains {:status 200})
       (provided
        (persistence/dynamo-health-check) => true))
 
 (fact "that our healthcheck gives a 500 status if things aren't healthy"
-      (:status (request :get "/healthcheck")) => 500
+      (request :get "/healthcheck") => (contains {:status 500})
       (provided
        (persistence/dynamo-health-check) => false))
 
 (fact "that our pokémon resource is awesome"
-      (:status (request :get "/1.x/pokemon")) => 200)
+      (request :get "/1.x/pokemon") => (contains {:status 200}))
 
 (fact "that our icon resource is awesome"
-      (:status (request :get "/1.x/icon")) => 200)
+      (request :get "/1.x/icon") => (contains {:status 200}))
 
 (fact "that creating an application successfully does the right thing"
-      (:status (request :post "/1.x/applications" (to-json {:name "something"}))) => 201
+      (request :post "/1.x/applications" (to-json {:name "something"})) => (contains {:status 201})
       (provided
        (persistence/create-application {:name "something"}) => true))
 
 (fact "that failing to create an application does the right thing"
-      (:status (request :post "/1.x/applications" (to-json {:name "something"}))) => 409
+      (request :post "/1.x/applications" (to-json {:name "something"})) => (contains {:status 409})
       (provided
        (persistence/create-application {:name "something"}) => false))
 
 (fact "that listing applications does the right thing"
-      (:body (request :get "/1.x/applications")) => {:applications ["app1" "app2" "app3"]}
+      (request :get "/1.x/applications") => (contains {:body {:applications ["app1" "app2" "app3"]}})
       (provided
        (persistence/list-applications) => ["app1" "app2" "app3"]))
 
 (fact "that getting an application which doesn't exist is a 404"
-      (:status (request :get "/1.x/applications/onix")) => 404
+      (request :get "/1.x/applications/onix") => (contains {:status 404})
       (provided
        (persistence/get-application "onix") => nil))
 
 (fact "that getting an application which exists gives back the data"
-      (:body (request :get "/1.x/applications/onix")) => {:name "onix"
-                                                          :metadata {:something "interesting"}}
+      (request :get "/1.x/applications/onix") => (contains {:body {:name "onix" :metadata {:something "interesting"}}})
       (provided
        (persistence/get-application "onix") => {:name "onix"
                                                 :metadata {:something "interesting"}}))
 
 (fact "that getting an individual metadata item for an application which doesn't exist is a 404"
-      (:status (request :get "/1.x/applications/onix/property")) => 404
+      (request :get "/1.x/applications/onix/property") => (contains {:status 404})
       (provided
        (persistence/get-application "onix") => nil))
 
 (fact "that getting an individual metadata item for an application which exists but doesn't have the property is a 404"
-      (:status (request :get "/1.x/applications/onix/property")) => 404
+      (request :get "/1.x/applications/onix/property") => (contains {:status 404})
       (provided
        (persistence/get-application "onix") => {:name "onix"
                                                 :metadata {:something "else"}}))
 
 (fact "that getting an individual metadata item which exists gives back the data"
-      (:body (request :get "/1.x/applications/onix/property")) => {:property "hello"}
+      (request :get "/1.x/applications/onix/property") => (contains {:body {:property "hello"}})
       (provided
        (persistence/get-application "onix") => {:name "onix"
                                                 :metadata {:property "hello"}}))
 
 (fact "that putting an individual metadata item for an application which didn't exist is 404"
-      (:status (request :put "/1.x/applications/onix/property" (to-json {:value "something"}))) => 404
+      (request :put "/1.x/applications/onix/property" (to-json {:value "something"})) => (contains {:status 404})
       (provided
        (persistence/update-application-metadata "onix" "property" "something") => nil))
 
 (fact "that putting an individual metadata item for an application which exists is a 201"
-      (:status (request :put "/1.x/applications/onix/property" (to-json {:value "something"}))) => 201
+      (request :put "/1.x/applications/onix/property" (to-json {:value "something"})) => (contains {:status 201})
       (provided
        (persistence/update-application-metadata "onix" "property" "something") => {:property "something"}))
 
 (fact "that deleting an individual metadata item is a 204"
-      (:status (request :delete "/1.x/applications/onix/property")) => 204
+      (request :delete "/1.x/applications/onix/property") => (contains {:status 204})
       (provided
        (persistence/delete-application-metadata-item "onix" "property") => anything))
