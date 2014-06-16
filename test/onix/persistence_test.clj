@@ -23,11 +23,11 @@
        (raw-proxy-port) => "123"))
 
 (fact "that creating assumed credentials does what we want"
-      (create-assumed-credentials) => (contains {:access-key ..access-key..
-                                                 :secret-key ..secret-key..})
+      (create-assumed-credentials) => (contains {:creds anything})
       (provided
-       (sts/assume-role {:role-arn "arn:aws:iam::513894612423:role/onix" :role-session-name "onix"}) => {:credentials {:access-key ..access-key..
-                                                                                                                       :secret-key ..secret-key..}}))
+       (sts/assume-role {:role-arn "arn:aws:iam::513894612423:role/onix" :role-session-name "onix"}) => {:credentials {:access-key "access-key"
+                                                                                                                       :secret-key "secret-key"
+                                                                                                                       :session-token "session-token"}}))
 
 (fact "that creating standard credentials does what we want"
       (create-standard-credentials) => anything

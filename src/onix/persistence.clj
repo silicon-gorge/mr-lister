@@ -4,7 +4,8 @@
             [clojure.core.memoize :as mem]
             [clojure.tools.logging :refer [info warn error]]
             [environ.core :refer [env]]
-            [taoensso.faraday :as far]))
+            [taoensso.faraday :as far])
+  (:import [com.amazonaws.auth BasicSessionCredentials]))
 
 (def applications-table
   :onix-applications)
@@ -25,19 +26,23 @@
   (into {} (filter (comp not empty? str val) m)))
 
 (defn create-credentials
-  [{:keys [access-key secret-key]}]
+  [credentials]
   (let [proxy-port (raw-proxy-port)]
     (remove-empty-entries
-     {:access-key access-key
-      :secret-key secret-key
-      :proxy-host (env :aws-http-proxy-host)
-      :proxy-port (if (seq proxy-port) (Integer/parseInt proxy-port) nil)
-      :endpoint (env :dynamo-endpoint)})))
+     (merge
+      credentials
+      {:proxy-host (env :aws-http-proxy-host)
+       :proxy-port (if (seq proxy-port) (Integer/parseInt proxy-port) nil)
+       :endpoint (env :dynamo-endpoint)}))))
 
 (defn create-assumed-credentials
   []
-  (let [assumed-role (sts/assume-role {:role-arn (env :service-poke-role-arn) :role-session-name "onix"})]
-    (create-credentials (:credentials assumed-role))))
+  (info "Assuming role")
+  (let [assumed-role (sts/assume-role {:role-arn (env :service-poke-role-arn) :role-session-name "onix"})
+        assumed-role-credentials (:credentials assumed-role)]
+    (create-credentials {:creds (BasicSessionCredentials. (:access-key assumed-role-credentials)
+                                                          (:secret-key assumed-role-credentials)
+                                                          (:session-token assumed-role-credentials))})))
 
 (defn create-standard-credentials
   []
