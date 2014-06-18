@@ -28,16 +28,12 @@
                  [nokia/ring-utils "1.2.4"]
                  [org.clojure/clojure "1.6.0"]
                  [org.clojure/core.memoize "0.5.6"]
-                 [org.clojure/data.json "0.2.4"]
-                 [org.clojure/data.xml "0.0.7"]
-                 [org.clojure/data.zip "0.1.1"]
                  [org.clojure/tools.logging "0.2.6"]
                  [org.eclipse.jetty/jetty-server "8.1.15.v20140411"]
                  [org.slf4j/jcl-over-slf4j "1.7.7"]
                  [org.slf4j/jul-to-slf4j "1.7.7"]
                  [org.slf4j/log4j-over-slf4j "1.7.7"]
                  [org.slf4j/slf4j-api "1.7.7"]
-                 [ring-json-params "0.1.3"]
                  [ring-middleware-format "0.3.2"]]
 
   :exclusions [commons-logging
@@ -48,7 +44,7 @@
                              [lein-midje "3.1.3"]
                              [jonase/kibit "0.0.8"]]}}
 
-  :plugins [[lein-ring "0.8.10"]
+  :plugins [[lein-ring "0.8.11"]
             [lein-environ "0.5.0"]
             [lein-release "1.0.73"]]
 

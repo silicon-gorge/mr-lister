@@ -1,8 +1,5 @@
 (ns onix.web
-  (:require [cheshire.core :as cheshire]
-            [clojure.data.xml :refer [element emit-str]]
-            [clojure.string :refer [split]]
-            [clojure.tools.logging :refer [info warn error]]
+  (:require [clojure.tools.logging :refer [info warn error]]
             [compojure
              [core :refer [defroutes context GET PUT POST DELETE]]
              [handler :as handler]
