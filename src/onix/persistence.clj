@@ -67,9 +67,7 @@
   "Fetches the data for the application with the given name."
   [application-name]
   (when-let [application (far/get-item (create-creds) applications-table {:name application-name})]
-    (if-let [metadata (cheshire/parse-string (:metadata application) true)]
-      (assoc application :metadata metadata)
-      application)))
+    (update-in application [:metadata] #(into (sorted-map) (cheshire/parse-string % true)))))
 
 (defn create-application
   "Creates the given application in store, unless it already exists."
