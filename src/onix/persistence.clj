@@ -103,6 +103,11 @@
               new-app (assoc app :metadata (cheshire/generate-string new-metadata))]
           (upsert-application new-app))))))
 
+(defn delete-application
+  "Removes the application"
+  [application]
+  (far/delete-item (create-creds) applications-table {:name application}))
+
 (defn applications-table-healthcheck
   "Checks that we can talk to Dynamo and get a description of our applications tables."
   []

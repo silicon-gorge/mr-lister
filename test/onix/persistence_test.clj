@@ -58,7 +58,7 @@
                                                                       :metadata "{\"size\":\"big\",\"colour\":\"red\"}"}))
 
 (fact "that fetching an application which exists but has no metadata works"
-      (get-application "dummy") => {:name "dummy"}
+      (get-application "dummy") => {:name "dummy" :metadata {}}
       (provided
        (far/get-item anything applications-table {:name "dummy"}) => {:name "dummy"}))
 
@@ -180,3 +180,8 @@
       (environments-table-healthcheck) => false
       (provided
        (far/describe-table anything environments-table) =throws=> (ex-info "Boom" {})))
+
+(fact "delete applcation calls delete-item. worst. test. ever."
+      (delete-application ..application..) => nil
+      (provided
+       (far/delete-item anything applications-table {:name ..application..}) => nil))

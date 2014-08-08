@@ -87,6 +87,12 @@
   (persistence/delete-application-metadata-item application-name key)
   {:status 204})
 
+(defn- delete-application
+  "Deletes an application from onix"
+  [application]
+  (persistence/delete-application application)
+  {:status 204})
+
 (defn- list-environments
   "Get a list of all the stored environments."
   []
@@ -125,7 +131,11 @@
 
   (DELETE "/:application/:key"
           [application key]
-          (delete-application-metadata-item application key)))
+          (delete-application-metadata-item application key))
+
+  (DELETE "/:application"
+          [application]
+          (delete-application application)))
 
 (defroutes environments-routes
 
