@@ -128,6 +128,20 @@
       (assoc environment :metadata metadata)
       environment)))
 
+(defn delete-environment
+  "Remove the supplied environment"
+  [environment-name]
+  (far/delete-item (create-creds) environments-table {:name environment-name}))
+
+(defn create-environment
+  "Creates a new environment associated with the new account, doesn't set createRepo to true, assumes
+   the new environment will be a limpet environment"
+  [environment account]
+  (far/put-item (create-creds) environments-table {:name environment
+                                                   :metadata (cheshire/generate-string
+                                                              {:account account})})
+  (get-environment environment))
+
 (defn environments-table-healthcheck
   "Checks that we can talk to Dynamo and get a description of our environments tables."
   []

@@ -107,6 +107,18 @@
     (response environment json-content-type)
     (error-response (str "Environment named: '" environment-name "' does not exist.") 404)))
 
+(defn- create-environment
+  "Create a new environment with the supplied name, associated with the supplied account"
+  [environment account]
+  (response (persistence/create-environment environment account)
+            json-content-type))
+
+(defn- delete-environment
+  "Removes the supplied environment"
+  [environment]
+  (persistence/delete-environment environment)
+  {:status 204})
+
 (defroutes applications-routes
 
   (GET "/"
@@ -145,7 +157,15 @@
 
   (GET "/:environment"
        [environment]
-       (get-environment environment)))
+       (get-environment environment))
+
+  (PUT "/:environment"
+       [environment account]
+       (create-environment environment account))
+
+  (DELETE "/:environment"
+          [environment]
+          (delete-environment environment)))
 
 (defroutes routes
   (context "/1.x"

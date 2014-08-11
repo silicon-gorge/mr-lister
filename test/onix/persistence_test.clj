@@ -181,7 +181,19 @@
       (provided
        (far/describe-table anything environments-table) =throws=> (ex-info "Boom" {})))
 
-(fact "delete applcation calls delete-item. worst. test. ever."
+(fact "delete applcation calls delete-item. worst. test. evar."
       (delete-application ..application..) => nil
       (provided
        (far/delete-item anything applications-table {:name ..application..}) => nil))
+
+(fact "delete environment calls delete-itme. also. worst. test. evar."
+      (delete-environment ..environment..) => nil
+      (provided
+       (far/delete-item anything environments-table {:name ..environment..}) => nil))
+
+(fact "create environment creates a new environment with the associated account, returns the new environment"
+      (create-environment ..environment.. "dev") => ..new-environment..
+      (provided
+       (far/put-item anything environments-table (contains {:name ..environment..
+                                                            :metadata "{\"account\":\"dev\"}"})) => nil
+       (get-environment ..environment..) => ..new-environment..))

@@ -144,3 +144,18 @@
       (provided
        (persistence/get-environment "environment") => {:name "environment"
                                                        :metadata {:anything "else"}}))
+
+(fact "deleting an application does"
+      (request :delete "/1.x/applications/blah") => (contains {:status 204})
+      (provided
+       (persistence/delete-application "blah") => nil))
+
+(fact "deleting an environment does"
+      (request :delete "/1.x/environments/blah") => (contains {:status 204})
+      (provided
+       (persistence/delete-environment "blah") => nil))
+
+(fact "creating an environment does"
+      (request :put "/1.x/environments/blah" {:params {"account" "dev"}}) => (contains {:status 200})
+      (provided
+       (persistence/create-environment "blah" "dev") => true))
