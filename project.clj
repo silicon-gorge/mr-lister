@@ -107,9 +107,8 @@
                     :groupname "onix"
                     :sources {:source [{:location "scripts/bin"}]}}
                    {:directory "/etc/rc.d/init.d"
-                    :filemode "744"
-                    :username "onix"
-                    :groupname "onix"
-                    :sources {:source [{:location "scripts/service/onix"}]}}]}
+                    :filemode "755"
+                    :sources {:source [{:location "scripts/service/onix"
+                                        :destination "onix"}]}}]}
 
   :main onix.setup)
