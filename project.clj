@@ -1,4 +1,4 @@
-(defproject onix "0.34"
+(defproject onix "0.35-SNAPSHOT"
   :description "Onix service"
 
   :dependencies [[amazonica "0.2.28" :exclusions [com.fasterxml.jackson.core/jackson-annotations]]
