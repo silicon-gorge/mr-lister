@@ -1,19 +1,19 @@
 /bin/echo "postinstall script started [$1]"
 
+APP_NAME=onix
+
 if [ "$1" -le 1 ]
 then
-  /sbin/chkconfig --add onix
+  /sbin/chkconfig --add $APP_NAME
 else
-  /sbin/chkconfig --list onix
+  /sbin/chkconfig --list $APP_NAME
 fi
 
-mkdir -p /var/log/onix
+ln -s /var/encrypted/logs/$APP_NAME /var/log/$APP_NAME
 
-chown -R onix:onix /var/log/onix
+chown -R $APP_NAME:$APP_NAME /usr/local/$APP_NAME
 
-ln -s /var/log/onix /usr/local/onix/log
-
-chown onix:onix /usr/local/onix
+chmod 755 /usr/local/$APP_NAME/bin
 
 /bin/echo "postinstall script finished"
 exit 0

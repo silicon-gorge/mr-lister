@@ -27,18 +27,19 @@
 
 (defn create-credentials
   [credentials]
-  (let [proxy-port (raw-proxy-port)]
+  (let [proxy-host (env :aws-http-proxy-host)
+        proxy-port (raw-proxy-port)]
     (remove-empty-entries
-     (merge
-      credentials
-      {:proxy-host (env :aws-http-proxy-host)
-       :proxy-port (if (seq proxy-port) (Integer/parseInt proxy-port) nil)
-       :endpoint (env :dynamo-endpoint)}))))
+     (merge credentials
+            {:endpoint (env :dynamo-endpoint)}
+            (if (and proxy-host proxy-port)
+              {:proxy-host proxy-host
+               :proxy-port (Integer/valueOf proxy-port)})))))
 
 (defn create-assumed-credentials
   []
   (info "Assuming role")
-  (let [assumed-role (sts/assume-role {:role-arn (env :service-poke-role-arn) :role-session-name "onix"})
+  (let [assumed-role (sts/assume-role {:role-arn (env :poke-role-arn) :role-session-name "onix"})
         assumed-role-credentials (:credentials assumed-role)]
     (create-credentials {:creds (BasicSessionCredentials. (:access-key assumed-role-credentials)
                                                           (:secret-key assumed-role-credentials)

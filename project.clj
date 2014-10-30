@@ -1,101 +1,83 @@
 (defproject onix "0.34-SNAPSHOT"
   :description "Onix service"
-  :url "http://wikis.in.nokia.com/NokiaMusicArchitecture/Onix"
 
-;;; USEFUL COMMANDS
-
-;;; lein start                       Starts up ring in auto-reload mode on port SERVICE_PORT (default 3000). Alias for: lein ring server-headless.
-;;; lein autotest                    Uses midje autotest across all classes and tests. Alias for: lein midje :autotest src/ingestion_store test/ingestion_store.
-;;; lein autounit                    Uses midje autotest across all classes and unit tests. Alias for: lein midje :autotest src/ingestion_store test/ingestion_store/unit.
-;;; lein start-integration           Starts in integration mode (pointing at real external services)** Alias for: lein with-profile integration ring server-headless.
-;;; lein midje                       Runs all tests
-;;; lein acceptance                  Runs the acceptance tests (useful for CI server). Alias for: lein midje :filter acceptance.
-;;; lein midje :filter unit          Run unit tests
-
-  :dependencies [[amazonica "0.2.16"]
+  :dependencies [[amazonica "0.2.28" :exclusions [com.fasterxml.jackson.core/jackson-annotations]]
                  [ch.qos.logback/logback-classic "1.1.2"]
                  [cheshire "5.3.1"]
-                 [clj-time "0.7.0"]
-                 [com.ovi.common.logging/logback-appender "0.0.45"]
-                 [com.ovi.common.metrics/metrics-graphite "2.1.25"]
-                 [com.taoensso/faraday "1.4.0"]
-                 [com.yammer.metrics/metrics-logback "2.2.0"]
-                 [compojure "1.1.8" :exclusions [javax.servlet/servlet-api]]
-                 [environ "0.5.0"]
-                 [metrics-clojure "1.1.0"]
-                 [metrics-clojure-ring "1.1.0"]
-                 [nokia/instrumented-ring-jetty-adapter "0.1.9"]
-                 [nokia/ring-utils "1.2.4"]
+                 [clj-time "0.8.0"]
+                 [com.taoensso/faraday "1.5.0"]
+                 [compojure "1.2.1"]
+                 [environ "1.0.0"]
+                 [joda-time "2.5"]
+                 [mixradio/graphite-filter "1.0.0"]
+                 [mixradio/instrumented-ring-jetty-adapter "1.0.4"]
+                 [mixradio/radix "1.0.7"]
+                 [net.logstash.logback/logstash-logback-encoder "3.3"]
                  [org.clojure/clojure "1.6.0"]
                  [org.clojure/core.memoize "0.5.6"]
-                 [org.clojure/tools.logging "0.2.6"]
-                 [org.eclipse.jetty/jetty-server "8.1.15.v20140411"]
-                 [org.slf4j/jcl-over-slf4j "1.7.7"]
-                 [org.slf4j/jul-to-slf4j "1.7.7"]
-                 [org.slf4j/log4j-over-slf4j "1.7.7"]
-                 [org.slf4j/slf4j-api "1.7.7"]
-                 [ring-middleware-format "0.3.2"]]
+                 [org.clojure/tools.logging "0.3.1"]
+                 [ring-middleware-format "0.4.0"]]
 
   :exclusions [commons-logging
-               log4j]
+               joda-time
+               log4j
+               org.clojure/clojure]
 
   :profiles {:dev {:dependencies [[midje "1.6.3"]]
-                   :plugins [[lein-rpm "0.0.5"]
+                   :plugins [[lein-kibit "0.0.8"]
                              [lein-midje "3.1.3"]
-                             [jonase/kibit "0.0.8"]]}}
+                             [lein-rpm "0.0.5"]]}}
 
-  :plugins [[lein-ring "0.8.11"]
-            [lein-environ "0.5.0"]
-            [lein-release "1.0.73"]]
+  :plugins [[lein-environ "1.0.0"]
+            [lein-release "1.0.5"]
+            [lein-ring "0.8.13"]]
 
-  :env {:aws-access-key nil
+  :env {:auto-reload true
+        :aws-access-key nil
         :aws-secret-key nil
         :aws-http-proxy-host "nokes.nokia.com"
-        :aws-http-proxy-port "8080"
+        :aws-http-proxy-port 8080
         :dynamo-endpoint "http://dynamodb.eu-west-1.amazonaws.com"
-        :environment-name "Dev"
+        :environment-name "dev"
+        :graphite-enabled false
+        :graphite-host "carbon.brislabs.com"
+        :graphite-port 2003
+        :graphite-post-interval-seconds 60
+        :logging-consolethreshold "off"
+        :logging-filethreshold "info"
+        :logging-level "info"
+        :logging-path "/tmp"
+        :logging-stashthreshold "off"
+        :poke-role-arn "arn:aws:iam::513894612423:role/onix"
+        :production false
+        :requestlog-enabled false
+        :requestlog-retainhours 24
         :service-name "onix"
-        :service-port "8080"
-        :service-url "http://localhost:%s/1.x"
-        :restdriver-port "8081"
-        :environment-entertainment-graphite-host "graphite.brislabs.com"
-        :environment-entertainment-graphite-port "8080"
-        :service-graphite-post-interval "1"
-        :service-graphite-post-unit "MINUTES"
-        :service-graphite-enabled "ENABLED"
-        :service-production "false"
-        :service-poke-role-arn "arn:aws:iam::513894612423:role/onix"}
+        :service-port 8080
+        :shutdown-timeout-millis 5000
+        :start-timeout-seconds 120
+        :threads 254}
 
-  :aliases { "autotest" ["midje" ":autotest" "src/onix" "test/onix" ":filter" "-slow"]
-             "autounit" ["midje" ":autotest" "src/onix" "test/onix/unit"]
-             "acceptance" ["midje" ":filter" "acceptance"]
-             "start" ["ring" "server-headless"]
-             "start-integration" ["with-profile" "integration" "ring" "server-headless"]}
-
-  :lein-release {:release-tasks [:clean :uberjar :pom :rpm]
-                 :clojars-url "clojars@clojars.brislabs.com:"}
+  :lein-release {:deploy-via :shell
+                 :shell ["lein" "do" "clean," "uberjar," "pom," "rpm"]}
 
   :ring {:handler onix.web/app
          :main onix.setup
-         :port ~(Integer.  (get (System/getenv) "SERVICE_PORT" "8080"))
+         :port ~(Integer/valueOf (get (System/getenv) "SERVICE_PORT" "8080"))
          :init onix.setup/setup
-         :browser-uri "/1.x/status"}
-
-  :repositories {"internal-clojars"
-                 "http://clojars.brislabs.com/repo"
-                 "rm.brislabs.com"
-                 "http://rm.brislabs.com/nexus/content/groups/all-releases"}
+         :browser-uri "/healthcheck"
+         :nrepl {:start? true}}
 
   :uberjar-name "onix.jar"
 
   :rpm {:name "onix"
         :summary "RPM for Onix service"
-        :copyright "Nokia 2013"
+        :copyright "MixRadio 2014"
         :preinstall {:scriptFile "scripts/rpm/preinstall.sh"}
         :postinstall {:scriptFile "scripts/rpm/postinstall.sh"}
         :preremove {:scriptFile "scripts/rpm/preremove.sh"}
         :postremove {:scriptFile "scripts/rpm/postremove.sh"}
-        :requires ["jdk >= 2000:1.6.0_31-fcs"]
+        :requires ["jdk >= 2000:1.7.0_55-fcs"]
         :mappings [{:directory "/usr/local/onix"
                     :filemode "444"
                     :username "onix"

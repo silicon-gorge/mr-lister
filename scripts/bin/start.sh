@@ -1,8 +1,8 @@
 #!/bin/sh
 
-SERVICE_NAME=onix
+APP_NAME=onix
 
-PIDS=$(pgrep java -lf | grep onix | cut -d" " -f1);
+PIDS=$(pgrep java -lf | grep $APP_NAME | cut -d" " -f1);
 
 if [ -n "$PIDS" ]
 then
@@ -10,13 +10,11 @@ then
   exit 1
 fi
 
-JETTY_HOME=/usr/local/onix
-JAR_NAME=$JETTY_HOME/onix.jar
-LOG_FILE=$JETTY_HOME/log/jetty.log
-ERR_FILE=$JETTY_HOME/log/jetty.err
+JETTY_HOME=/usr/local/$APP_NAME
+JAR_NAME=$JETTY_HOME/$APP_NAME.jar
 
 IFS="$(echo -e "\n\r")"
-for LINE in `cat /etc/${SERVICE_NAME}.properties`
+for LINE in `cat /etc/${APP_NAME}.properties`
 do
   case $LINE in
     \#*) ;;
@@ -31,27 +29,32 @@ done
 IFS="$(echo -e " ")"
 
 SERVICE_PORT=${SERVICE_PORT:-"8080"}
-HEALTHCHECK_PATH=${SERVICE_HEALTHCHECK_PATH:-"/healthcheck"}
-SERVICE_JETTY_START_TIMEOUT_SECONDS=${SERVICE_JETTY_START_TIMEOUT_SECONDS:-"60"}
+HEALTHCHECK_PATH=${HEALTHCHECK_PATH:-"/healthcheck"}
+START_TIMEOUT_SECONDS=${START_TIMEOUT_SECONDS:-"60"}
+LOGGING_PATH=${LOGGING_PATH:-"/var/log/${SERVICE_NAME}"}
+LOG_FILE=${LOGGING_PATH}/onix.out
+ERR_FILE=${LOGGING_PATH}/onix.err
 
-nohup java $SERVICE_JVMARGS -Dservice.logging.path=${SERVICE_LOGGING_PATH} -jar $JAR_NAME > $LOG_FILE 2> $ERR_FILE < /dev/null &
+mkdir -p /var/encrypted/logs/${APP_NAME}
 
-healthcheckUrl=http://localhost:$SERVICE_PORT$HEALTHCHECK_PATH
-waitTimeout=$SERVICE_JETTY_START_TIMEOUT_SECONDS
+nohup java $SERVICE_JVMARGS -jar $JAR_NAME > $LOG_FILE 2> $ERR_FILE < /dev/null &
+
+statusUrl=http://localhost:$SERVICE_PORT$HEALTHCHECK_PATH
+waitTimeout=$START_TIMEOUT_SECONDS
 sleepCounter=0
 sleepIncrement=2
 
 echo "Giving Onix $waitTimeout seconds to start successfully"
-echo "Using $healthcheckUrl to determine service health"
+echo "Using $statusUrl to determine service status"
 
 retVal=0
 
-until [ `curl --write-out %{http_code} --silent --output /dev/null $healthcheckUrl` -eq 200 ]
+until [ `curl --write-out %{http_code} --silent --output /dev/null $statusUrl` -eq 200 ]
 do
   if [ $sleepCounter -ge $waitTimeout ]
   then
     echo "Onix didn't start within $waitTimeout seconds."
-    PIDS=$(pgrep java -lf | grep onix | cut -d" " -f1);
+    PIDS=$(pgrep java -lf | grep $APP_NAME | cut -d" " -f1);
     if [ -n "$PIDS" ]
 	then
 	  echo "Killing $PIDS";

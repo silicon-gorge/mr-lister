@@ -5,15 +5,17 @@
 # To use this script run it as root - it will switch to the specified user
 #
 # Here is a little (and extremely primitive) startup/shutdown script
-# for RedHat systems. It assumes that Onix lives in /usr/local/onix,
+# for RedHat based systems. It assumes that Onix lives in /usr/local/onix,
 # it's run by user 'onix' and JDK binaries are in /usr/java/default/bin.
-# All this can be changed in the script itself. 
+# All this can be changed in the script itself.
 #
 # Either modify this script for your requirements or just ensure that
 # the following variables are set correctly before calling the script.
-# chkconfig: 345 99 05 
-# description: Runs the Onix Server 
-# processname: onix 
+# chkconfig: 345 99 05
+# description: Runs Onix
+# processname: onix
+
+LOCKFILE=/var/lock/subsys/onix
 
 #define where onix is
 GIVEN_HOME="/usr/local/onix"
@@ -25,9 +27,6 @@ JETTY_USER=${JETTY_USER:-"onix"}
 
 #make sure java is in your path
 JAVAPTH=${JAVAPTH:-"/usr/java/default/bin"}
-
-#define property file location
-export SERVICE_JVMARGS="-Dconfig=/usr/local/deployment/Onix1/config/post_install.properties"
 
 #define the script to use to start onix
 JETTYSH=${JETTYSH:-"$JETTY_HOME/bin/start.sh"}
@@ -61,6 +60,7 @@ start)
     else
         $SUBIT "$JETTY_CMD_START"
     fi
+    touch $LOCKFILE
     ;;
 stop)
     echo Stopping Onix
@@ -68,7 +68,8 @@ stop)
         $JETTY_CMD_STOP
     else
         $SUBIT "$JETTY_CMD_STOP"
-    fi 
+    fi
+    rm -f $LOCKFILE
     ;;
 restart)
     $0 stop

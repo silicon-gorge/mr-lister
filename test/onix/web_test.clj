@@ -36,12 +36,6 @@
             (streamed-body? response) (update-in [:body] slurp)
             (json-response? response) (update-in [:body] (fn [b] (json/parse-string b true))))))
 
-(fact "that we can set the version"
-      (set-version! "0.2") => anything
-      *version* => "0.2"
-      (set-version! "something") => anything
-      *version* => "something")
-
 (fact "that ping pongs"
       (request :get "/ping") => (contains {:body "pong"}))
 

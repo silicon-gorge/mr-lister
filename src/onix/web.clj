@@ -4,16 +4,17 @@
              [core :refer [defroutes context GET PUT POST DELETE]]
              [handler :as handler]
              [route :as route]]
-            [environ.core :refer [env]]
             [metrics.ring
              [expose :refer [expose-metrics-as-json]]
              [instrument :refer [instrument]]]
-            [nokia.ring-utils
-             [error :refer [wrap-error-handling error-response]]
-             [ignore-trailing-slash :refer [wrap-ignore-trailing-slash]]]
             [onix
              [persistence :as persistence]
              [pokemon :as pokemon]]
+            [radix
+             [error :refer [wrap-error-handling error-response]]
+             [ignore-trailing-slash :refer [wrap-ignore-trailing-slash]]
+             [setup :as setup]
+             [reload :refer [wrap-reload]]]
             [ring.middleware
              [format-params :refer [wrap-json-kw-params]]
              [format-response :refer [wrap-json-response]]
@@ -22,10 +23,8 @@
 (def json-content-type "application/json;charset=UTF-8")
 (def text-plain-type "text/plain;charset=UTF-8")
 
-(def ^:dynamic *version* "none")
-(defn set-version!
-  [version]
-  (alter-var-root #'*version* (fn [_] version)))
+(def version
+  (setup/version "onix"))
 
 (defn response
   [data content-type & [status]]
@@ -39,7 +38,7 @@
         environments-ok? (future (persistence/environments-table-healthcheck))
         all-ok? (and @applications-ok? @environments-ok?)]
     (-> {:name "onix"
-         :version *version*
+         :version version
          :success all-ok?
          :dependencies [{:name "dynamo-applications" :success @applications-ok?}
                         {:name "dynamo-environments" :success @environments-ok?}]}
@@ -204,6 +203,7 @@
 
 (def app
   (-> routes
+      (wrap-reload)
       (instrument)
       (wrap-error-handling)
       (wrap-ignore-trailing-slash)
