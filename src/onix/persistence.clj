@@ -99,7 +99,7 @@
   (when-let [app (get-application application-name)]
     (let [kw (keyword key)
           metadata (:metadata app)]
-      (when (not (nil? (kw metadata)))
+      (when-not (nil? (kw metadata))
         (let [new-metadata (dissoc metadata kw)
               new-app (assoc app :metadata (cheshire/generate-string new-metadata))]
           (upsert-application new-app))))))

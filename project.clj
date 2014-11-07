@@ -70,6 +70,8 @@
 
   :uberjar-name "onix.jar"
 
+  :eastwood {:namespaces [:source-paths]}
+
   :rpm {:name "onix"
         :summary "RPM for Onix service"
         :copyright "MixRadio 2014"

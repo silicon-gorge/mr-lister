@@ -37,12 +37,12 @@
   (let [applications-ok? (future (persistence/applications-table-healthcheck))
         environments-ok? (future (persistence/environments-table-healthcheck))
         all-ok? (and @applications-ok? @environments-ok?)]
-    (-> {:name "onix"
-         :version version
-         :success all-ok?
-         :dependencies [{:name "dynamo-applications" :success @applications-ok?}
-                        {:name "dynamo-environments" :success @environments-ok?}]}
-        (response json-content-type (if all-ok? 200 500)))))
+    (response {:name "onix"
+               :version version
+               :success all-ok?
+               :dependencies [{:name "dynamo-applications" :success @applications-ok?}
+                              {:name "dynamo-environments" :success @environments-ok?}]}
+              json-content-type (if all-ok? 200 500))))
 
 (defn- create-application
   "Create a new application from the contents of the given request."
