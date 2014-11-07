@@ -1,7 +1,7 @@
 (defproject onix "0.35-SNAPSHOT"
   :description "Onix service"
 
-  :dependencies [[amazonica "0.2.28" :exclusions [com.fasterxml.jackson.core/jackson-annotations]]
+  :dependencies [[amazonica "0.2.29" :exclusions [com.fasterxml.jackson.core/jackson-annotations]]
                  [ch.qos.logback/logback-classic "1.1.2"]
                  [cheshire "5.3.1"]
                  [clj-time "0.8.0"]
@@ -11,7 +11,7 @@
                  [joda-time "2.5"]
                  [mixradio/graphite-filter "1.0.0"]
                  [mixradio/instrumented-ring-jetty-adapter "1.0.4"]
-                 [mixradio/radix "1.0.7"]
+                 [mixradio/radix "1.0.9"]
                  [net.logstash.logback/logstash-logback-encoder "3.3"]
                  [org.clojure/clojure "1.6.0"]
                  [org.clojure/core.memoize "0.5.6"]
