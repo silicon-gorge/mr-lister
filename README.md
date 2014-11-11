@@ -1,126 +1,115 @@
-# Nokia Entertainment Onix
+# Mr. Lister
 
 ## Introduction
 
-Onix is a RESTful web service that maintains a list of applications that
-are deployed in the Nokia Entertainment cloud computing environment.
-Associated with each application is a list of metadata items, each of
-which has a key (string) and a value which can be arbitrary json. Methods
-are supplied to create new applications and to create, update and delete
-metadata items.
+Lister is a RESTful web service which maintains a list of applications which are deployed that maintains a list of applications that are deployed using the MixRadio cloud-tooling and the environments they are deployed in to. The RESTful interface allows the creating, updating and deleting of the metadata.
 
-The service runs in the cloud and is backed by the Amazon's DynamoDB data
-storage service.
+Each application and environment can be thought of as a JSON object with a `name` and a `metadata` property. The `metadata` is an object containing arbitrary key/value pairs where the value is assumed to be JSON.
+
+For a fictional `search` application the output from Lister might look like:
+
+```json
+{
+  "name": "search",
+  "metadata": {
+    "contact": "me@email.com"
+  }
+}
+```
+
+The application uses [Amazon's DynamoDB](http://aws.amazon.com/dynamodb/) for its storage.
 
 ## Resources
 
-GET /1.x/ping (returns 'pong')
+* `GET /ping` - returns 'pong'
+* `GET /healthcheck` - returns a JSON response giving some information on whether the application is healthy (the status will be `200` or `500` depending whether the application is healthy or not)
+* `GET /applications` - list applications
+* `GET /applications/{app}` - show details of an application
+* `PUT /applications/{app}` - create a new application
+* `DELETE /applications/{app}` - delete an application
+* `GET /applications/{app}/{key}` - gets a metadata item for an application
+* `PUT /applications/{app}/{key}` - create/update a metadata item against the application
+* `DELETE /applications/{app}/{key}` - deletes a metadata item from an application
+* `GET /environments` - list environments
+* `GET /environments/{env}` - show details of an environment
+* `PUT /environments/{env}` - create a new environment
+* `DELETE /environments/{env}` - delete an environment
 
-GET /1.x/status (returns status of the service)
+## List applications
 
-GET /healthcheck (returns '200' or '500' depending whether the service is healthy)
+### Resource details
 
-GET /1.x/applications (list applications)
-
-POST /1.x/applications (create a new application)
-
-GET /1.x/applications/{app} (show details of an application)
-
-PUT /1.x/applications/{app}/{key} (create/update a metadata item)
-
-GET /1.x/applications/{app}/{key} (gets a metadata item)
-
-DELETE /1.x/applications/{app}/{key} (deletes a metadata item)
-
-## Notes
-
-There is currently no mechanism for deleting an application.
-
-Slashes at the end of resource paths are optional.
-
-## List Applications
-
-### Resource Details
-
-GET /1.x/applications
+`GET /applications`
 
 Returns the list of applications that exist.
 
-### Example Request
+### Example request
 
-    GET http://onix.ent.nokia.com:8080/1.x/applications/
+    GET http://lister/applications/
 
-### Example Response
+### Example response
 
     200 OK
     Content-Type: application/json; charset=utf-8
     {
       "applications" : [
+         "amber",
          "puce",
-         "vermilion",
          "rose",
-         "amber"
+         "vermillion"
       ]
     }
 
-### Response Codes
+### Response codes
 
 200 OK
 
 500 InternalServerError
 
-## Create Applications
+## Create application
 
-### Resource Details
+### Resource details
 
-POST /1.x/applications (application/json)
+`PUT /applications/{app}`
 
-Create a new application.
+Create (technically upserts) a new application (called 'search' in this example).
 
-### Example Request
+### Example request
 
-    POST http://onix.ent.nokia.com:8080/1.x/applications/
-    Content-Type: application/json
-    {
-      "name" : "my-new-app"
-    }
+    POST http://lister/applications/search
 
-### Example Response
+### Example response
 
     201 Created
     Content-Type: application/json; charset=utf-8
     {
-      "name" : "my-new-app"
+      "name" : "search"
     }
 
-### Response Codes
+### Response codes
 
 201 Created
 
-400 BadRequest
-
-409 Conflict (application already exists)
-
 500 InternalServerError
 
-## Show Details of an Applications
+## Show details of an application
 
-### Resource Details
+### Resource details
 
-GET /1.x/applications/{app}
+`GET /applications/{app}`
 
 Gets the name and metadata associated with an application.
 
-### Example Request
+### Example request
 
-    GET http://onix.ent.nokia.com:8080/1.x/applications/empoleon
+    GET http://lister/applications/search
 
-### Example Response
+### Example response
 
     200 OK
     Content-Type: application/json; charset=utf-8
     {
-       "name" : "empoleon",
+       "name" : "search",
        "metadata" : [
          {
            "key1" : "string value 1"
@@ -143,7 +132,7 @@ Gets the name and metadata associated with an application.
        ]
      }
 
-### Response Codes
+### Response codes
 
 200 OK
 
@@ -151,51 +140,38 @@ Gets the name and metadata associated with an application.
 
 500 InternalServerError
 
-## Create/Update a Metadata Item
+## Create/update a metadata item
 
-### Resource Details
+### Resource details
 
-PUT /1.x/applications/{app}/{key} (application/json)
+`PUT /1.x/applications/{app}/{key}` (application/json)
 
-Creates or updates the metadata of the application {app} with an item called {key} with
-the value of the item provided in the body of the request.
+Creates or updates the metadata of the application {app} with an item called {key} with the value of the item provided in the body of the request.
 
-### Example Request
+### Example request
 
-    PUT http://onix.ent.nokia.com:8080/1.x/applications/empoleon/stats
+    PUT http://lister/1.x/applications/search/property
     {
       "value" : [
-        {
-          "hp" : 84
-        },
-        {
-          "attack" : 86
-        },
-        {
-          "defense" : 88
-        }
+        "value 1",
+        "value 2",
+        "value 3"
       ]
     }
 
-### Example Response
+### Example response
 
     201 Created
     Content-Type: application/json; charset=utf-8
     {
-      "stats" : [
-        {
-          "hp" : 84
-        },
-        {
-          "attack" : 86
-        },
-        {
-          "defense" : 88
-        }
+      "value" : [
+        "value 1",
+        "value 2",
+        "value 3"
       ]
     }
 
-### Response Codes
+### Response codes
 
 201 Created
 
@@ -205,27 +181,27 @@ the value of the item provided in the body of the request.
 
 500 InternalServerError
 
-## Get Application Metadata Item
+## Get application metadata item
 
-### Resource Details
+### Resource details
 
-GET /1.x/applications/{app}/{key}
+`GET /1.x/applications/{app}/{key}`
 
-Gets a particular piece of metadata identified by the key {key} for the application {app}.
+Gets a particular item of metadata identified by the key {key} for the application {app}.
 
-### Example Request
+### Example request
 
-    GET http://onix.ent.nokia.com:8080/1.x/applications/charizard/species
+    GET http://lister/applications/search/property
 
-### Example Response
+### Example response
 
     200 OK
     Content-Type: application/json; charset=utf-8
     {
-      "species" : "flame"
+      "value" : "anything"
     }
 
-### Response Codes
+### Response codes
 
 200 OK
 
@@ -233,25 +209,23 @@ Gets a particular piece of metadata identified by the key {key} for the applicat
 
 500 InternalServerError
 
-## Delete an Application Metadata Item
+## Delete an application metadata item
 
-### Resource Details
+### Resource details
 
-DELETE /1.x/applications/{app}/{key}
+`DELETE /1.x/applications/{app}/{key}`
 
-Deletes a particular piece of metadata identified by the key {key} for the application {app}.
-This is idempotent so that repeated deletes or deletes on applications and keys that don't
-exist will always return the same successful response.
+Deletes a particular piece of metadata identified by the key {key} for the application {app}. This is idempotent so that repeated deletes or deletes on applications and keys that don't exist will always return the same successful response.
 
-### Example Request
+### Example request
 
-    DELETE http://onix.ent.nokia.com:8080/1.x/applications/venusaur/abilities
+    DELETE http://lister/applications/search/something
 
-### Example Response
+### Example response
 
     204 NoContent
 
-### Response Codes
+### Response codes
 
 204 NoContent
 
@@ -259,29 +233,57 @@ exist will always return the same successful response.
 
 ## Healthcheck
 
-### Resource Details
+### Resource details
 
 GET /healthcheck
 
 Checks if the service is running and communicating with DynamoDB in AWS.
 
-### Example Request
+### Example request
 
-    GET http://onix.ent.nokia.com:8080/healthcheck/
+    GET http://lister/healthcheck
 
-### Example Response 1
+### Example response 1
 
     200 OK
-    Content-Type: text/plain;charset=UTF-8
-    I am healthy. Thank you for asking.
+    Content-Type: application/json; charset=utf-8
+    {
+      "dependencies": [
+        {
+          "name": "dynamo-applications",
+          "success": true
+        },
+        {
+          "name": "dynamo-environments",
+          "success": true
+        }
+      ],
+      "name": "lister",
+      "success": true,
+      "version": "1.0.0"
+    }
 
-### Example Response 2
+### Example response 2
 
     500 InternalServerError
-    Content-Type: text/plain;charset=UTF-8
-    I am unwell. Check my logs.
+    Content-Type: application/json; charset=utf-8
+    {
+      "dependencies": [
+        {
+          "name": "dynamo-applications",
+          "success": false
+        },
+        {
+          "name": "dynamo-environments",
+          "success": true
+        }
+      ],
+      "name": "lister",
+      "success": false,
+      "version": "1.0.0"
+    }
 
-### Response Codes
+### Response codes
 
 200 OK
 

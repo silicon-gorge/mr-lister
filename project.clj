@@ -1,10 +1,12 @@
 (defproject onix "0.35-SNAPSHOT"
-  :description "Onix service"
+  :description "Lists environments and applications for cloud deployment"
 
-  :dependencies [[amazonica "0.2.29" :exclusions [com.fasterxml.jackson.core/jackson-annotations]]
+  :dependencies [[amazonica "0.2.29" :exclusions [com.fasterxml.jackson.core/jackson-annotations
+                                                  org.apache.httpcomponents/httpclient]]
                  [ch.qos.logback/logback-classic "1.1.2"]
                  [cheshire "5.3.1"]
                  [clj-time "0.8.0"]
+                 [com.ninjakoala/aws-instance-metadata "1.0.0-SNAPSHOT"]
                  [com.taoensso/faraday "1.5.0"]
                  [compojure "1.2.1"]
                  [environ "1.0.0"]
@@ -34,9 +36,11 @@
 
   :env {:auto-reload true
         :aws-access-key nil
-        :aws-secret-key nil
         :aws-http-proxy-host "nokes.nokia.com"
         :aws-http-proxy-port 8080
+        :aws-master-account-id "master-account-id"
+        :aws-role "lister"
+        :aws-secret-key nil
         :dynamo-endpoint "http://dynamodb.eu-west-1.amazonaws.com"
         :environment-name "dev"
         :graphite-enabled false
@@ -48,11 +52,10 @@
         :logging-level "info"
         :logging-path "/tmp"
         :logging-stashthreshold "off"
-        :poke-role-arn "arn:aws:iam::513894612423:role/onix"
         :production false
         :requestlog-enabled false
         :requestlog-retainhours 24
-        :service-name "onix"
+        :service-name "lister"
         :service-port 8080
         :shutdown-timeout-millis 5000
         :start-timeout-seconds 120
@@ -61,18 +64,18 @@
   :lein-release {:deploy-via :shell
                  :shell ["lein" "do" "clean," "uberjar," "pom," "rpm"]}
 
-  :ring {:handler onix.web/app
-         :main onix.setup
+  :ring {:handler lister.web/app
+         :main lister.setup
          :port ~(Integer/valueOf (get (System/getenv) "SERVICE_PORT" "8080"))
-         :init onix.setup/setup
+         :init lister.setup/setup
          :browser-uri "/healthcheck"
          :nrepl {:start? true}}
 
-  :uberjar-name "onix.jar"
+  :uberjar-name "lister.jar"
 
   :eastwood {:namespaces [:source-paths]}
 
-  :rpm {:name "onix"
+  :rpm {:name "lister"
         :summary "RPM for Onix service"
         :copyright "MixRadio 2014"
         :preinstall {:scriptFile "scripts/rpm/preinstall.sh"}
@@ -80,19 +83,19 @@
         :preremove {:scriptFile "scripts/rpm/preremove.sh"}
         :postremove {:scriptFile "scripts/rpm/postremove.sh"}
         :requires ["jdk >= 2000:1.7.0_55-fcs"]
-        :mappings [{:directory "/usr/local/onix"
+        :mappings [{:directory "/usr/local/lister"
                     :filemode "444"
-                    :username "onix"
-                    :groupname "onix"
-                    :sources {:source [{:location "target/onix.jar"}]}}
-                   {:directory "/usr/local/onix/bin"
+                    :username "lister"
+                    :groupname "lister"
+                    :sources {:source [{:location "target/lister.jar"}]}}
+                   {:directory "/usr/local/lister/bin"
                     :filemode "744"
-                    :username "onix"
-                    :groupname "onix"
+                    :username "lister"
+                    :groupname "lister"
                     :sources {:source [{:location "scripts/bin"}]}}
                    {:directory "/etc/rc.d/init.d"
                     :filemode "755"
-                    :sources {:source [{:location "scripts/service/onix"
-                                        :destination "onix"}]}}]}
+                    :sources {:source [{:location "scripts/service/lister"
+                                        :destination "lister"}]}}]}
 
-  :main onix.setup)
+  :main lister.setup)

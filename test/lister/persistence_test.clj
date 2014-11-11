@@ -1,8 +1,13 @@
-(ns onix.persistence-test
+(ns lister.persistence-test
   (:require [amazonica.aws.securitytoken :as sts]
+            [environ.core :refer [env]]
+            [lister.persistence :refer :all]
             [midje.sweet :refer :all]
-            [onix.persistence :refer :all]
+            [ninjakoala.instance-metadata :as im]
             [taoensso.faraday :as far]))
+
+(background
+ (im/instance-identity) => {:account-id "master-account-id"})
 
 (fact "that creating credentials removes empty values"
       (create-credentials {:access-key nil :something-else :value}) =not=> (contains {:access-key nil}))
@@ -25,14 +30,20 @@
 (fact "that creating assumed credentials does what we want"
       (create-assumed-credentials) => (contains {:creds anything})
       (provided
-       (sts/assume-role {:role-arn "arn:aws:iam::513894612423:role/onix" :role-session-name "onix"}) => {:credentials {:access-key "access-key"
-                                                                                                                       :secret-key "secret-key"
-                                                                                                                       :session-token "session-token"}}))
+       (sts/assume-role {:role-arn "arn:aws:iam::master-account-id:role/lister" :role-session-name "lister"}) => {:credentials {:access-key "access-key"
+                                                                                                                                :secret-key "secret-key"
+                                                                                                                                :session-token "session-token"}}))
 
 (fact "that creating standard credentials does what we want"
       (create-standard-credentials) => anything
       (provided
        (sts/assume-role anything) => anything :times 0))
+
+(fact "that creating credentials uses assumed credentials when we're not running in the master account"
+      (create-creds) => ..assumed-credentials..
+      (provided
+       (im/instance-identity) => {:account-id "not-master-account-id"}
+       (create-assumed-credentials) => ..assumed-credentials..))
 
 (fact "that creating an application which already exists returns a falsey value"
       (create-application {:name "dummy"}) => falsey
@@ -42,6 +53,7 @@
 (fact "that creating an application which doesn't exist creates it"
       (create-application {:name "application"}) => {:name "application"}
       (provided
+       (im/instance-identity) => {:account-id "master-account-id"}
        (get-application "application") => nil
        (far/put-item anything applications-table {:name "application"}) => ..put-result..))
 
@@ -68,7 +80,7 @@
        (far/get-item anything applications-table {:name "dummy"}) => nil))
 
 (fact "that adding a metadata item to an existing app adds the item to the stored application."
-      (update-application-metadata "dummy" "key" "value") => {:key "value"}
+      (update-application-metadata "dummy" "key" "value") => {:value "value"}
       (provided
        (get-application "dummy") => {:name "dummy"
                                      :metadata {:size "big" :colour "red"}}
@@ -76,7 +88,7 @@
                             :metadata "{\"key\":\"value\",\"size\":\"big\",\"colour\":\"red\"}"}) => anything))
 
 (fact "that updating a metadata item in an existing app overwrites the previous value"
-      (update-application-metadata "dummy" "colour" "blue") => {:colour "blue"}
+      (update-application-metadata "dummy" "colour" "blue") => {:value "blue"}
       (provided
        (get-application "dummy") => {:name "dummy"
                                      :metadata {:size "big" :colour "red"}}
@@ -89,7 +101,7 @@
        (far/get-item anything applications-table {:name "dummy"}) => nil))
 
 (fact "that requesting a metadata item which exists on an existing application succeeds."
-      (get-application-metadata-item "dummy" "colour") => {:colour "red"}
+      (get-application-metadata-item "dummy" "colour") => {:value "red"}
       (provided
        (far/get-item anything applications-table {:name "dummy"}) => {:name "dummy"
                                                                       :metadata "{\"size\":\"big\",\"colour\":\"red\"}"}))
@@ -181,17 +193,17 @@
       (provided
        (far/describe-table anything environments-table) =throws=> (ex-info "Boom" {})))
 
-(fact "delete applcation calls delete-item. worst. test. evar."
+(fact "that delete applcation calls delete-item. worst. test. evar."
       (delete-application ..application..) => nil
       (provided
        (far/delete-item anything applications-table {:name ..application..}) => nil))
 
-(fact "delete environment calls delete-itme. also. worst. test. evar."
+(fact "that delete environment calls delete-item. also. worst. test. evar."
       (delete-environment ..environment..) => nil
       (provided
        (far/delete-item anything environments-table {:name ..environment..}) => nil))
 
-(fact "create environment creates a new environment with the associated account, returns the new environment"
+(fact "that create environment creates a new environment with the associated account, returns the new environment"
       (create-environment ..environment.. "dev") => ..new-environment..
       (provided
        (far/put-item anything environments-table (contains {:name ..environment..

@@ -1,15 +1,13 @@
-(ns onix.web
+(ns lister.web
   (:require [clojure.tools.logging :refer [info warn error]]
             [compojure
              [core :refer [defroutes context GET PUT POST DELETE]]
              [handler :as handler]
              [route :as route]]
+            [lister.persistence :as persistence]
             [metrics.ring
              [expose :refer [expose-metrics-as-json]]
              [instrument :refer [instrument]]]
-            [onix
-             [persistence :as persistence]
-             [pokemon :as pokemon]]
             [radix
              [error :refer [wrap-error-handling error-response]]
              [ignore-trailing-slash :refer [wrap-ignore-trailing-slash]]
@@ -24,7 +22,7 @@
 (def text-plain-type "text/plain;charset=UTF-8")
 
 (def version
-  (setup/version "onix"))
+  (setup/version "lister"))
 
 (defn response
   [data content-type & [status]]
@@ -37,7 +35,7 @@
   (let [applications-ok? (future (persistence/applications-table-healthcheck))
         environments-ok? (future (persistence/environments-table-healthcheck))
         all-ok? (and @applications-ok? @environments-ok?)]
-    (response {:name "onix"
+    (response {:name "lister"
                :version version
                :success all-ok?
                :dependencies [{:name "dynamo-applications" :success @applications-ok?}
@@ -47,9 +45,8 @@
 (defn- create-application
   "Create a new application from the contents of the given request."
   [application]
-  (if-let [result (persistence/create-application application)]
-    (response application json-content-type 201)
-    (error-response (str "application named '" (:name application) "' already exists") 409)))
+  (persistence/create-application application)
+  (response application json-content-type 201))
 
 (defn- list-applications
   "Get a list of all the stored applications."
@@ -87,7 +84,7 @@
   {:status 204})
 
 (defn- delete-application
-  "Deletes an application from onix"
+  "Deletes an application"
   [application]
   (persistence/delete-application application)
   {:status 204})
@@ -109,8 +106,8 @@
 (defn- create-environment
   "Create a new environment with the supplied name, associated with the supplied account"
   [environment account]
-  (response (persistence/create-environment environment account)
-            json-content-type))
+  (persistence/create-environment environment account)
+  {:status 201})
 
 (defn- delete-environment
   "Removes the supplied environment"
@@ -124,13 +121,17 @@
        []
        (list-applications))
 
-  (POST "/"
-        [:as {application :body-params}]
-        (create-application application))
-
   (GET "/:application"
        [application]
        (get-application application))
+
+  (PUT "/:application"
+       [application]
+       (create-application {:name application}))
+
+  (DELETE "/:application"
+          [application]
+          (delete-application application))
 
   (GET "/:application/:key"
        [application key]
@@ -142,11 +143,7 @@
 
   (DELETE "/:application/:key"
           [application key]
-          (delete-application-metadata-item application key))
-
-  (DELETE "/:application"
-          [application]
-          (delete-application application)))
+          (delete-application-metadata-item application key)))
 
 (defroutes environments-routes
 
@@ -170,17 +167,6 @@
   (context "/1.x"
            []
 
-           (GET "/pokemon"
-                []
-                (response pokemon/image text-plain-type))
-
-           (GET "/icon"
-                []
-                {:status 200
-                 :headers {"Content-Type" "image/jpeg"}
-                 :body (-> (clojure.java.io/resource "onix.jpg")
-                           (clojure.java.io/input-stream))})
-
            (context "/applications"
                     []
                     applications-routes)
@@ -188,6 +174,14 @@
            (context "/environments"
                     []
                     environments-routes))
+
+  (context "/applications"
+           []
+           applications-routes)
+
+  (context "/environments"
+           []
+           environments-routes)
 
   (GET "/ping"
        []

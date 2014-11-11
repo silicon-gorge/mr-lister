@@ -1,12 +1,12 @@
-(ns onix.setup
+(ns lister.setup
   (:require [clojure.java.io :as io]
             [clojure.string :as str]
             [clojure.tools.logging :refer [info warn error]]
             [environ.core :refer [env]]
-            [mixradio.instrumented-jetty :refer [run-jetty]]
-            [onix
+            [lister
              [persistence :as persistence]
              [web :as web]]
+            [mixradio.instrumented-jetty :refer [run-jetty]]
             [radix.setup :as setup])
   (:gen-class))
 

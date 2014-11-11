@@ -1,6 +1,6 @@
 /bin/echo "postinstall script started [$1]"
 
-APP_NAME=onix
+APP_NAME=lister
 
 if [ "$1" -le 1 ]
 then

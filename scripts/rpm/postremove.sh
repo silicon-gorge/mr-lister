@@ -2,8 +2,8 @@
 
 if [ "$1" = 0 ]
 then
-  /usr/sbin/userdel -r onix 2> /dev/null || :
-  /bin/rm -rf /usr/local/onix
+  /usr/sbin/userdel -r lister 2> /dev/null || :
+  /bin/rm -rf /usr/local/lister
 fi
 
 /bin/echo "postremove script finished"
