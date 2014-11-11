@@ -1,4 +1,4 @@
-(defproject onix "0.36-SNAPSHOT"
+(defproject onix "0.36"
   :description "Lists environments and applications for cloud deployment"
 
   :dependencies [[amazonica "0.2.29" :exclusions [com.fasterxml.jackson.core/jackson-annotations
