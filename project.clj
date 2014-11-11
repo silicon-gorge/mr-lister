@@ -42,9 +42,11 @@
         :aws-role "lister"
         :aws-secret-key nil
         :dynamo-endpoint "http://dynamodb.eu-west-1.amazonaws.com"
+        :dynamo-table-applications "lister-applications"
+        :dynamo-table-environments "lister-environments"
         :environment-name "dev"
         :graphite-enabled false
-        :graphite-host "carbon.brislabs.com"
+        :graphite-host "graphite"
         :graphite-port 2003
         :graphite-post-interval-seconds 60
         :logging-consolethreshold "off"
