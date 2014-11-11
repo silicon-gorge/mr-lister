@@ -60,7 +60,7 @@
 (defn create-creds
   []
   (if (= (master-account-id) (:account-id (im/instance-identity)))
-    create-standard-credentials
+    (create-standard-credentials)
     ((mem/ttl create-assumed-credentials :ttl/threshold (* 30 60 1000)))))
 
 (defn upsert-application
