@@ -6,7 +6,7 @@
                  [ch.qos.logback/logback-classic "1.1.2"]
                  [cheshire "5.3.1"]
                  [clj-time "0.8.0"]
-                 [com.ninjakoala/aws-instance-metadata "1.0.0-SNAPSHOT"]
+                 [com.ninjakoala/aws-instance-metadata "1.0.0"]
                  [com.taoensso/faraday "1.5.0"]
                  [compojure "1.2.1"]
                  [environ "1.0.0"]
