@@ -3,6 +3,7 @@
             [cheshire.core :as cheshire]
             [clojure.core.memoize :as mem]
             [clojure.tools.logging :refer [info warn error]]
+            [clojure.walk :refer [postwalk]]
             [environ.core :refer [env]]
             [ninjakoala.instance-metadata :as im]
             [taoensso.faraday :as far])
@@ -131,11 +132,15 @@
   []
   (map :name (far/scan (create-creds) environments-table {:return [:name]})))
 
+(defn- order-keys
+  [m]
+  (postwalk (fn [x] (if (map? x) (into (sorted-map) x) x)) m))
+
 (defn get-environment
   [environment-name]
   (when-let [environment (far/get-item (create-creds) environments-table {:name environment-name})]
     (if-let [metadata (cheshire/parse-string (:metadata environment) true)]
-      (assoc environment :metadata (into (sorted-map) metadata))
+      (assoc environment :metadata (order-keys metadata))
       environment)))
 
 (defn delete-environment
