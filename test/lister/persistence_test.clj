@@ -203,9 +203,9 @@
       (provided
        (far/delete-item anything environments-table {:name ..environment..}) => nil))
 
-(fact "that create environment creates a new environment with the associated account, returns the new environment"
-      (create-environment ..environment.. "dev") => ..new-environment..
+(fact "that create environment creates a new environment with the associated account-id, returns the new environment"
+      (create-environment ..environment.. "dev-id") => ..new-environment..
       (provided
        (far/put-item anything environments-table (contains {:name ..environment..
-                                                            :metadata "{\"account\":\"dev\"}"})) => nil
+                                                            :metadata "{\"account-id\":\"dev-id\"}"})) => nil
        (get-environment ..environment..) => ..new-environment..))

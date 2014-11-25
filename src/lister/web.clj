@@ -106,8 +106,12 @@
 (defn- create-environment
   "Create a new environment with the supplied name, associated with the supplied account"
   [environment account]
-  (persistence/create-environment environment account)
-  {:status 201})
+  (if account
+    (do
+      (persistence/create-environment environment account)
+      {:status 201})
+    {:status 400
+     :body "No 'account' parameter defined."}))
 
 (defn- delete-environment
   "Removes the supplied environment"

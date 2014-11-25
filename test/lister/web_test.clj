@@ -139,6 +139,9 @@
        (persistence/delete-environment "blah") => nil))
 
 (fact "that creating an environment works"
-      (request :put "/environments/blah" {:params {"account" "dev"}}) => (contains {:status 201})
+      (request :put "/environments/blah" {:params {"account" "dev-id"}}) => (contains {:status 201})
       (provided
-       (persistence/create-environment "blah" "dev") => {}))
+       (persistence/create-environment "blah" "dev-id") => {}))
+
+(fact "that creating an environment but forgetting account-id gives a 400"
+      (request :put "/environments/blah" {}) => (contains {:status 400}))

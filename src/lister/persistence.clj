@@ -144,10 +144,10 @@
   (far/delete-item (create-creds) environments-table {:name environment-name}))
 
 (defn create-environment
-  "Creates a new environment associated with the new account, doesn't set createRepo to true, assumes the new environment will be a limpet environment"
-  [environment account]
+  "Creates a new environment associated with the new account-id, doesn't set createRepo to true, assumes the new environment will be a limpet environment"
+  [environment account-id]
   (far/put-item (create-creds) environments-table {:name environment
-                                                   :metadata (cheshire/generate-string {:account account})})
+                                                   :metadata (cheshire/generate-string {:account-id account-id})})
   (get-environment environment))
 
 (defn environments-table-healthcheck
