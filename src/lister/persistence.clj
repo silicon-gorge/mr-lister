@@ -135,7 +135,7 @@
   [environment-name]
   (when-let [environment (far/get-item (create-creds) environments-table {:name environment-name})]
     (if-let [metadata (cheshire/parse-string (:metadata environment) true)]
-      (assoc environment :metadata metadata)
+      (assoc environment :metadata (into (sorted-map) metadata))
       environment)))
 
 (defn delete-environment
