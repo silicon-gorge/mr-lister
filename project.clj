@@ -1,5 +1,6 @@
-(defproject onix "0.40-SNAPSHOT"
+(defproject lister "0.40-SNAPSHOT"
   :description "Lists environments and applications for cloud deployment"
+  :license  "https://github.com/mixradio/mr-lister/blob/master/LICENSE"
 
   :dependencies [[amazonica "0.2.29" :exclusions [com.fasterxml.jackson.core/jackson-annotations
                                                   org.apache.httpcomponents/httpclient]]

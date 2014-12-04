@@ -19,6 +19,29 @@ For a fictional `search` application the output from Lister might look like:
 
 The application uses [Amazon's DynamoDB](http://aws.amazon.com/dynamodb/) for its storage.
 
+## Running
+
+```
+lein run
+```
+
+or:
+
+```
+lein uberjar
+java -jar lister.jar
+```
+
+## Configuration
+
+There are a number of properties which are present in the `project.clj`. With the `lein run` option you can just amend the properties and they'll be made available to the application via [lein-environ](https://github.com/weavejester/environ). If using the `uberjar` option, you'll want to `export` them first:
+
+```
+export DYNAMO_ENDPOINT=http://dynamodb.eu-west-1.amazonaws.com
+# The above property will be recognised by environ as :dynamo-endpoint
+java -jar tyrant.jar
+```
+
 ## Resources
 
 * `GET /ping` - returns 'pong'
@@ -288,3 +311,9 @@ Checks if the service is running and communicating with DynamoDB in AWS.
 200 OK
 
 500 InternalServerError
+
+## License
+
+Copyright © 2014 MixRadio
+
+[mr-lister is released under the 3-clause license ("New BSD License" or "Modified BSD License")](https://github.com/mixradio/mr-lister/blob/master/LICENSE)
