@@ -2,9 +2,11 @@
 
 ## Introduction
 
-Lister is a RESTful web service which maintains a list of applications which are deployed that maintains a list of applications that are deployed using the MixRadio cloud-tooling and the environments they are deployed in to. The RESTful interface allows the creating, updating and deleting of the metadata.
+Lister is a RESTful web service which maintains a list of applications which are deployed that maintains a list of applications that are deployed using the MixRadio cloud-tooling and the environments they are deployed in to.
 
-Each application and environment can be thought of as a JSON object with a `name` and a `metadata` property. The `metadata` is an object containing arbitrary key/value pairs where the value is assumed to be JSON.
+You can see @neilprosser talking about the application in [this talk at Clojure eXchange 2014](https://skillsmatter.com/skillscasts/6057-herding-cattle-with-clojure-at-mixradio).
+
+The RESTful interface allows the creating, updating and deleting of the metadata. Each application and environment can be thought of as a JSON object with a `name` and a `metadata` property. The `metadata` is an object containing arbitrary key/value pairs where the value is assumed to be JSON.
 
 For a fictional `search` application the output from Lister might look like:
 
