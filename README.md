@@ -1,4 +1,4 @@
-# Mr. Lister
+# Mr. Lister [![Build Status](https://travis-ci.org/mixradio/mr-lister.png)](https://travis-ci.org/mixradio/mr-lister)
 
 ## Introduction
 
