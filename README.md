@@ -31,7 +31,7 @@ or:
 
 ```
 lein uberjar
-java -jar lister.jar
+java -jar target/lister.jar
 ```
 
 ## Configuration
