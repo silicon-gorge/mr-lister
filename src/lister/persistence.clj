@@ -74,6 +74,10 @@
   []
   (map :name (far/scan (create-creds) applications-table {:return [:name]})))
 
+(defn list-applications-full
+  []
+  (map (fn [app] { :name (:name app) :metadata (cheshire/parse-string (:metadata app) true)}) (far/scan (create-creds) applications-table)))
+
 (defn get-application
   "Fetches the data for the application with the given name."
   [application-name]

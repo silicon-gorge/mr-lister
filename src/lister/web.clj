@@ -56,6 +56,11 @@
       ((fn [a] {:applications a}))
       (response json-content-type)))
 
+(defn list-applications-with-details
+  "Get a list of all the stored applications along with full details."
+  []
+  (response  {:applications (sort #(compare (:name %1) (:name %2)) (persistence/list-applications-full))} json-content-type))
+
 (defn- get-application
   "Returns the application with the given name, or '404' if it doesn't exist."
   [application-name]
@@ -122,8 +127,11 @@
 (defroutes applications-routes
 
   (GET "/"
-       []
-       (list-applications))
+       {params :params}
+       (let [fullview (== 0 (compare (get params "view") "full"))]
+        (if fullview
+          (list-applications-with-details)
+          (list-applications))))
 
   (GET "/:application"
        [application]
