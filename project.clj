@@ -1,4 +1,4 @@
-(defproject lister "0.40"
+(defproject lister "0.41-SNAPSHOT"
   :description "Lists environments and applications for cloud deployment"
   :license  "https://github.com/mixradio/mr-lister/blob/master/LICENSE"
 
