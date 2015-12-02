@@ -74,7 +74,9 @@
 (defn get-application
   "Fetches the data for the application with the given name."
   [application-name]
-  (far/get-item (create-creds) applications-table {:name application-name}))
+  (when-let [application (far/get-item (create-creds) applications-table {:name application-name})]
+    {:name (:name application)
+     :metadata (into (sorted-map) (dissoc application :name))}))
 
 (defn create-application
   "Creates the given application in store, unless it already exists."
@@ -129,7 +131,9 @@
 
 (defn get-environment
   [environment-name]
-  (far/get-item (create-creds) environments-table {:name environment-name}))
+  (when-let [environment (far/get-item (create-creds) environments-table {:name environment-name})]
+    {:name (:name environment)
+     :metadata (into (sorted-map) (dissoc environment :name))}))
 
 (defn delete-environment
   "Remove the supplied environment"
@@ -152,13 +156,3 @@
     (catch Exception e
       (warn e "Exception while describing table for healthcheck")
       false)))
-
-(defn copy-applicaions
-  []
-  (doseq [{:keys [metadata name]} (far/scan (create-creds) :onix-applications)]
-    (far/put-item (create-creds) :lister-applications (merge (cheshire.core/parse-string metadata true) {:name name}))))
-
-(defn copy-environments
-  []
-  (doseq [{:keys [metadata name]} (far/scan (create-creds) :onix-environments)]
-    (far/put-item (create-creds) :lister-environments (merge (cheshire.core/parse-string metadata true) {:name name}))))
