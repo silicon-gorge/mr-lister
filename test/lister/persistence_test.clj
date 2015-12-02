@@ -49,16 +49,15 @@
 
 (fact "that fetching an application which exists gets the application all properties works"
       (get-application "dummy") => {:name "dummy"
-                                    :metadata {:size "big"
-                                               :colour "red"}}
+                                    :size "big"
+                                    :colour "red"}
       (provided
        (far/get-item anything applications-table {:name "dummy"}) => {:name "dummy"
                                                                       :size "big"
                                                                       :colour "red"}))
 
 (fact "that fetching an application which exists but has extra no properties works"
-      (get-application "dummy") => {:name "dummy"
-                                    :metadata {}}
+      (get-application "dummy") => {:name "dummy"}
       (provided
        (far/get-item anything applications-table {:name "dummy"}) => {:name "dummy"}))
 
@@ -154,16 +153,15 @@
 
 (fact "that fetching an environment which exists gets the environment including its metadata"
       (get-environment "dummy") => {:name "dummy"
-                                    :metadata {:size "big"
-                                               :colour "red"}}
+                                    :size "big"
+                                    :colour "red"}
       (provided
        (far/get-item anything environments-table {:name "dummy"}) => {:name "dummy"
                                                                       :size "big"
                                                                       :colour "red"}))
 
 (fact "that fetching an environment which exists but has no metadata works"
-      (get-environment "dummy") => {:name "dummy"
-                                    :metadata {}}
+      (get-environment "dummy") => {:name "dummy"}
       (provided
        (far/get-item anything environments-table {:name "dummy"}) => {:name "dummy"}))
 

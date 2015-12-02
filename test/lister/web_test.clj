@@ -76,7 +76,7 @@
       (request :get "/applications/application") => (contains {:body {:name "application" :metadata {:something "interesting"}}})
       (provided
        (persistence/get-application "application") => {:name "application"
-                                                       :metadata {:something "interesting"}}))
+                                                       :something "interesting"}))
 
 (fact "that getting an individual metadata item for an application which doesn't exist is a 404"
       (request :get "/applications/application/property") => (contains {:status 404})
@@ -124,7 +124,7 @@
                                                                :status 200})
       (provided
        (persistence/get-environment "environment") => {:name "environment"
-                                                       :metadata {:anything "else"}}))
+                                                       :anything "else"}))
 
 (fact "that deleting an application works"
       (request :delete "/applications/blah") => (contains {:status 204})

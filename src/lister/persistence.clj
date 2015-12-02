@@ -74,9 +74,7 @@
 (defn get-application
   "Fetches the data for the application with the given name."
   [application-name]
-  (when-let [application (far/get-item (create-creds) applications-table {:name application-name})]
-    {:name (:name application)
-     :metadata (into (sorted-map) (dissoc application :name))}))
+  (far/get-item (create-creds) applications-table {:name application-name}))
 
 (defn create-application
   "Creates the given application in store, unless it already exists."
@@ -94,18 +92,18 @@
 (defn update-application-metadata
   "Updates or creates a metadata property with the given key and value, for the given application. If the application doesn't exist 'nil' is returned."
   [application-name key value]
-  (when-let [app (get-application application-name)]
-    (let [new-app (assoc app (keyword key) value)]
-      (upsert-application new-app)
+  (when-let [application (get-application application-name)]
+    (let [new-application (assoc application (keyword key) value)]
+      (upsert-application new-application)
       {:value value})))
 
 (defn delete-application-metadata-item
   "Removes the metadata item with the given key from the given application, if it exists."
   [application-name key]
-  (when-let [app (get-application application-name)]
-    (let [new-app (dissoc app (keyword key))]
-      (when (not= app new-app)
-        (upsert-application new-app)))))
+  (when-let [application (get-application application-name)]
+    (let [new-application (dissoc application (keyword key))]
+      (when (not= application new-application)
+        (upsert-application new-application)))))
 
 (defn delete-application
   "Removes the application"
@@ -131,9 +129,7 @@
 
 (defn get-environment
   [environment-name]
-  (when-let [environment (far/get-item (create-creds) environments-table {:name environment-name})]
-    {:name (:name environment)
-     :metadata (into (sorted-map) (dissoc environment :name))}))
+  (far/get-item (create-creds) environments-table {:name environment-name}))
 
 (defn delete-environment
   "Remove the supplied environment"

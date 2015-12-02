@@ -59,13 +59,14 @@
 (defn list-applications-with-details
   "Get a list of all the stored applications along with full details."
   []
-  (response  {:applications (sort #(compare (:name %1) (:name %2)) (persistence/list-applications-full))} json-content-type))
+  (response {:applications (sort #(compare (:name %1) (:name %2)) (map (fn [a] {:name (:name a) :metadata (dissoc a :name)}) (persistence/list-applications-full)))} json-content-type))
 
 (defn- get-application
   "Returns the application with the given name, or '404' if it doesn't exist."
   [application-name]
   (if-let [application (persistence/get-application application-name)]
-    (response application json-content-type)
+    (response {:name (:name application)
+               :metadata (dissoc application :name)} json-content-type)
     (error-response (str "Application named: '" application-name "' does not exist.") 404)))
 
 (defn- put-application-metadata-item
@@ -105,7 +106,8 @@
 (defn- get-environment
   [environment-name]
   (if-let [environment (persistence/get-environment environment-name)]
-    (response environment json-content-type)
+    (response {:name (:name environment)
+               :metadata (dissoc environment :name)} json-content-type)
     (error-response (str "Environment named: '" environment-name "' does not exist.") 404)))
 
 (defn- create-environment
@@ -133,29 +135,29 @@
           (list-applications-with-details)
           (list-applications))))
 
-  (GET "/:application"
-       [application]
-       (get-application application))
+  (GET "/:application-name"
+       [application-name]
+       (get-application application-name))
 
-  (PUT "/:application"
-       [application]
-       (create-application {:name application}))
+  (PUT "/:application-name"
+       [application-name]
+       (create-application {:name application-name}))
 
-  (DELETE "/:application"
-          [application]
-          (delete-application application))
+  (DELETE "/:application-name"
+          [application-name]
+          (delete-application application-name))
 
-  (GET "/:application/:key"
-       [application key]
-       (get-application-metadata-item application key))
+  (GET "/:application-name/:key"
+       [application-name key]
+       (get-application-metadata-item application-name key))
 
-  (PUT "/:application/:key"
-       [application key value]
-       (put-application-metadata-item application key value))
+  (PUT "/:application-name/:key"
+       [application-name key value]
+       (put-application-metadata-item application-name key value))
 
-  (DELETE "/:application/:key"
-          [application key]
-          (delete-application-metadata-item application key)))
+  (DELETE "/:application-name/:key"
+          [application-name key]
+          (delete-application-metadata-item application-name key)))
 
 (defroutes environments-routes
 
@@ -163,17 +165,17 @@
        []
        (list-environments))
 
-  (GET "/:environment"
-       [environment]
-       (get-environment environment))
+  (GET "/:environment-name"
+       [environment-name]
+       (get-environment environment-name))
 
-  (PUT "/:environment"
-       [environment account]
-       (create-environment environment account))
+  (PUT "/:environment-name"
+       [environment-name account]
+       (create-environment environment-name account))
 
-  (DELETE "/:environment"
-          [environment]
-          (delete-environment environment)))
+  (DELETE "/:environment-name"
+          [environment-name]
+          (delete-environment environment-name)))
 
 (defroutes routes
   (context "/1.x"
