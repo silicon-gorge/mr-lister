@@ -9,23 +9,8 @@
 (background
  (im/instance-identity) => {:account-id "master-account-id"})
 
-(fact "that creating credentials removes empty values"
-      (create-credentials {:access-key nil :something-else :value}) =not=> (contains {:access-key nil}))
-
-(fact "that creating credentials treats a nil port string as nil"
-      (create-credentials {}) =not=> (contains {:proxy-port anything})
-      (provided
-       (raw-proxy-port) => nil))
-
-(fact "that creating credentials treats an empty port string as nil"
-      (create-credentials {}) =not=> (contains {:proxy-port anything})
-      (provided
-       (raw-proxy-port) => ""))
-
-(fact "that creating credentials handles an actual port string correctly"
-      (create-credentials {}) => (contains {:proxy-port 123})
-      (provided
-       (raw-proxy-port) => "123"))
+(fact "that creating configuration removes empty values"
+      (create-configuration {:something nil :something-else :value}) =not=> (contains {:something nil}))
 
 (fact "that creating assumed credentials does what we want"
       (create-assumed-credentials) => (contains {:creds anything})
@@ -62,15 +47,17 @@
       (provided
        (far/scan anything applications-table {:return [:name]}) => [{:name "app1"} {:name "app2"} {:name "app3"}]))
 
-(fact "that fetching an application which exists gets the application including its metadata"
+(fact "that fetching an application which exists gets the application all properties works"
       (get-application "dummy") => {:name "dummy"
-                                    :metadata {:size "big" :colour "red"}}
+                                    :size "big"
+                                    :colour "red"}
       (provided
        (far/get-item anything applications-table {:name "dummy"}) => {:name "dummy"
-                                                                      :metadata "{\"size\":\"big\",\"colour\":\"red\"}"}))
+                                                                      :size "big"
+                                                                      :colour "red"}))
 
-(fact "that fetching an application which exists but has no metadata works"
-      (get-application "dummy") => {:name "dummy" :metadata {}}
+(fact "that fetching an application which exists but has extra no properties works"
+      (get-application "dummy") => {:name "dummy"}
       (provided
        (far/get-item anything applications-table {:name "dummy"}) => {:name "dummy"}))
 
@@ -83,19 +70,24 @@
       (update-application-metadata "dummy" "key" "value") => {:value "value"}
       (provided
        (get-application "dummy") => {:name "dummy"
-                                     :metadata {:size "big" :colour "red"}}
+                                     :size "big"
+                                     :colour "red"}
        (upsert-application {:name "dummy"
-                            :metadata "{\"key\":\"value\",\"size\":\"big\",\"colour\":\"red\"}"}) => anything))
+                            :size "big"
+                            :colour "red"
+                            :key "value"}) => anything))
 
-(fact "that updating a metadata item in an existing app overwrites the previous value"
+(fact "that updating metadata for an existing app overwrites the previous value"
       (update-application-metadata "dummy" "colour" "blue") => {:value "blue"}
       (provided
        (get-application "dummy") => {:name "dummy"
-                                     :metadata {:size "big" :colour "red"}}
+                                     :size "big"
+                                     :colour "red"}
        (upsert-application {:name "dummy"
-                            :metadata "{\"size\":\"big\",\"colour\":\"blue\"}"}) => anything))
+                            :size "big"
+                            :colour "blue"}) => anything))
 
-(fact "that updating a metadata item in an app which doesn't exist returns nil"
+(fact "that updating metadata item for an app which doesn't exist returns nil"
       (update-application-metadata "dummy" "key" "value") => nil
       (provided
        (far/get-item anything applications-table {:name "dummy"}) => nil))
@@ -103,25 +95,24 @@
 (fact "that requesting a metadata item which exists on an existing application succeeds."
       (get-application-metadata-item "dummy" "colour") => {:value "red"}
       (provided
-       (far/get-item anything applications-table {:name "dummy"}) => {:name "dummy"
-                                                                      :metadata "{\"size\":\"big\",\"colour\":\"red\"}"}))
+       (far/get-item anything applications-table {:name "dummy"} {:return [:colour]}) => {:colour "red"}))
 
 (fact "that requesting a metadata item which does not exist on an existing application returns nil."
       (get-application-metadata-item "dummy" "key") => nil
       (provided
-       (far/get-item anything applications-table {:name "dummy"}) => {:name "dummy"
-                                                                      :metadata "{\"size\":\"big\",\"colour\":\"red\"}"}))
+       (far/get-item anything applications-table {:name "dummy"} {:return [:key]}) => nil))
 
 (fact "that requesting a metadata item on an application which doesn't exist returns nil."
       (get-application-metadata-item "dummy" "key") => nil
       (provided
-       (far/get-item anything applications-table {:name "dummy"}) => nil))
+       (far/get-item anything applications-table {:name "dummy"} {:return [:key]}) => nil))
 
 (fact "that deleting a metadata item that doesn't exist returns nil"
       (delete-application-metadata-item "app" "key") => nil
       (provided
        (get-application "app") => {:name "app"
-                                   :metadata "{\"anotherkey\":\"val\",\"anotherkey2\":\"val2\"}"}))
+                                   :anotherkey "val"
+                                   :anotherkey2 "val2"}))
 
 (fact "that deleting a metadata item where the application doesn't exist returns nil"
       (delete-application-metadata-item "app" "key") => nil
@@ -137,9 +128,8 @@
       (delete-application-metadata-item "app" "key") =not=> nil
       (provided
        (get-application "app") => {:name "app"
-                                   :metadata {:key "value"}}
-       (upsert-application {:name "app"
-                            :metadata "{}"}) => "something"))
+                                   :key "value"}
+       (upsert-application {:name "app"}) => "something"))
 
 (fact "that our trusty applications table healthcheck is true when things are good"
       (applications-table-healthcheck) => true
@@ -163,10 +153,12 @@
 
 (fact "that fetching an environment which exists gets the environment including its metadata"
       (get-environment "dummy") => {:name "dummy"
-                                    :metadata {:size "big" :colour "red"}}
+                                    :size "big"
+                                    :colour "red"}
       (provided
        (far/get-item anything environments-table {:name "dummy"}) => {:name "dummy"
-                                                                      :metadata "{\"size\":\"big\",\"colour\":\"red\"}"}))
+                                                                      :size "big"
+                                                                      :colour "red"}))
 
 (fact "that fetching an environment which exists but has no metadata works"
       (get-environment "dummy") => {:name "dummy"}
@@ -204,8 +196,8 @@
        (far/delete-item anything environments-table {:name ..environment..}) => nil))
 
 (fact "that create environment creates a new environment with the associated account-id, returns the new environment"
-      (create-environment ..environment.. "dev-id") => ..new-environment..
+      (create-environment ..environment.. "dev-id") => {:name ..environment..
+                                                        :account-id "dev-id"}
       (provided
        (far/put-item anything environments-table (contains {:name ..environment..
-                                                            :metadata "{\"account-id\":\"dev-id\"}"})) => nil
-       (get-environment ..environment..) => ..new-environment..))
+                                                            :account-id "dev-id"})) => nil))

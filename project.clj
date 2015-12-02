@@ -2,46 +2,40 @@
   :description "Lists environments and applications for cloud deployment"
   :license  "https://github.com/mixradio/mr-lister/blob/master/LICENSE"
 
-  :dependencies [[amazonica "0.2.29" :exclusions [com.fasterxml.jackson.core/jackson-annotations
-                                                  org.apache.httpcomponents/httpclient]]
-                 [ch.qos.logback/logback-classic "1.1.2"]
-                 [cheshire "5.3.1"]
-                 [clj-time "0.8.0"]
+  :dependencies [[amazonica "0.3.39"]
+                 [ch.qos.logback/logback-classic "1.1.3"]
+                 [cheshire "5.5.0"]
+                 [clj-time "0.11.0"]
                  [com.ninjakoala/aws-instance-metadata "1.0.0"]
-                 [com.taoensso/faraday "1.5.0"]
-                 [compojure "1.2.1"]
-                 [environ "1.0.0"]
-                 [joda-time "2.5"]
+                 [com.taoensso/faraday "1.8.0"]
+                 [compojure "1.4.0"]
+                 [environ "1.0.1"]
+                 [joda-time "2.9.1"]
                  [mixradio/graphite-filter "1.0.0"]
                  [mixradio/instrumented-ring-jetty-adapter "1.0.4"]
-                 [mixradio/radix "1.0.9"]
-                 [net.logstash.logback/logstash-logback-encoder "3.3"]
+                 [mixradio/radix "1.0.20"]
+                 [net.logstash.logback/logstash-logback-encoder "4.5.1"]
                  [org.clojure/clojure "1.6.0"]
-                 [org.clojure/core.memoize "0.5.6"]
+                 [org.clojure/core.memoize "0.5.8"]
                  [org.clojure/tools.logging "0.3.1"]
-                 [ring-middleware-format "0.4.0"]]
+                 [ring-middleware-format "0.7.0"]]
 
   :exclusions [commons-logging
                joda-time
                log4j
                org.clojure/clojure]
 
-  :profiles {:dev {:dependencies [[midje "1.6.3"]]
-                   :plugins [[lein-kibit "0.0.8"]
-                             [lein-midje "3.1.3"]
+  :profiles {:dev {:dependencies [[midje "1.8.2"]]
+                   :plugins [[lein-midje "3.2"]
                              [lein-rpm "0.0.5"]]}}
 
-  :plugins [[lein-environ "1.0.0"]
+  :plugins [[lein-environ "1.0.1"]
             [lein-release "1.0.5"]
-            [lein-ring "0.8.13"]]
+            [lein-ring "0.9.7"]]
 
   :env {:auto-reload true
-        :aws-access-key nil
-        :aws-http-proxy-host "nokes.nokia.com"
-        :aws-http-proxy-port 8080
         :aws-master-account-id "master-account-id"
         :aws-role "lister"
-        :aws-secret-key nil
         :dynamo-endpoint "http://dynamodb.eu-west-1.amazonaws.com"
         :dynamo-table-applications "lister-applications"
         :dynamo-table-environments "lister-environments"

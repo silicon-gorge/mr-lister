@@ -81,19 +81,17 @@
 (fact "that getting an individual metadata item for an application which doesn't exist is a 404"
       (request :get "/applications/application/property") => (contains {:status 404})
       (provided
-       (persistence/get-application "application") => nil))
+       (persistence/get-application-metadata-item "application" "property") => nil))
 
 (fact "that getting an individual metadata item for an application which exists but doesn't have the property is a 404"
       (request :get "/applications/application/property") => (contains {:status 404})
       (provided
-       (persistence/get-application "application") => {:name "application"
-                                                       :metadata {:something "else"}}))
+       (persistence/get-application-metadata-item "application" "property") => nil))
 
 (fact "that getting an individual metadata item which exists gives back the data"
       (request :get "/applications/application/property") => (contains {:body {:value "hello"}})
       (provided
-       (persistence/get-application "application") => {:name "application"
-                                                       :metadata {:property "hello"}}))
+       (persistence/get-application-metadata-item "application" "property") => {:value "hello"}))
 
 (fact "that putting an individual metadata item for an application which didn't exist is 404"
       (request :put "/applications/application/property" (to-json {:value "something"})) => (contains {:status 404})

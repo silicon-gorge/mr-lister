@@ -1,6 +1,5 @@
 (ns lister.persistence
   (:require [amazonica.aws.securitytoken :as sts]
-            [cheshire.core :as cheshire]
             [clojure.core.memoize :as mem]
             [clojure.tools.logging :refer [info warn error]]
             [clojure.walk :refer [postwalk]]
@@ -15,12 +14,10 @@
 (def environments-table
   (keyword (env :dynamo-table-environments "lister-environments")))
 
-(defn raw-proxy-port
-  []
-  (env :aws-http-proxy-port))
+(def dynamo-endpoint
+  (env :dynamo-endpoint))
 
-(defn master-account-id
-  []
+(def master-account-id
   (env :aws-master-account-id))
 
 (def role-name
@@ -30,16 +27,10 @@
   [m]
   (into {} (filter (comp not empty? str val) m)))
 
-(defn create-credentials
+(defn create-configuration
   [credentials]
-  (let [proxy-host (env :aws-http-proxy-host)
-        proxy-port (raw-proxy-port)]
-    (remove-empty-entries
-     (merge credentials
-            {:endpoint (env :dynamo-endpoint)}
-            (if (and proxy-host proxy-port)
-              {:proxy-host proxy-host
-               :proxy-port (Integer/valueOf proxy-port)})))))
+  (remove-empty-entries
+   (merge credentials {:endpoint dynamo-endpoint})))
 
 (defn- role-arn
   [account-id]
@@ -48,21 +39,23 @@
 (defn create-assumed-credentials
   []
   (info "Assuming role")
-  (let [assumed-role (sts/assume-role {:role-arn (role-arn (master-account-id)) :role-session-name "lister"})
+  (let [assumed-role (sts/assume-role {:role-arn (role-arn master-account-id) :role-session-name "lister"})
         assumed-role-credentials (:credentials assumed-role)]
-    (create-credentials {:creds (BasicSessionCredentials. (:access-key assumed-role-credentials)
-                                                          (:secret-key assumed-role-credentials)
-                                                          (:session-token assumed-role-credentials))})))
+    (create-configuration {:creds (BasicSessionCredentials. (:access-key assumed-role-credentials)
+                                                            (:secret-key assumed-role-credentials)
+                                                            (:session-token assumed-role-credentials))})))
 
 (defn create-standard-credentials
   []
-  (create-credentials {:access-key (env :aws-access-key) :secret-key (env :aws-secret-key)}))
+  (create-configuration {}))
 
 (defn create-creds
   []
-  (if (= (master-account-id) (:account-id (im/instance-identity)))
-    (create-standard-credentials)
-    ((mem/ttl create-assumed-credentials :ttl/threshold (* 30 60 1000)))))
+  (if-let [current-account-id (:account-id (im/instance-identity))]
+    (if (= master-account-id current-account-id)
+      (create-standard-credentials)
+      ((mem/ttl create-assumed-credentials :ttl/threshold (* 30 60 1000))))
+    (create-standard-credentials)))
 
 (defn upsert-application
   "Upserts the given application in store."
@@ -76,13 +69,12 @@
 
 (defn list-applications-full
   []
-  (map (fn [app] { :name (:name app) :metadata (cheshire/parse-string (:metadata app) true)}) (far/scan (create-creds) applications-table)))
+  (far/scan (create-creds) applications-table))
 
 (defn get-application
   "Fetches the data for the application with the given name."
   [application-name]
-  (when-let [application (far/get-item (create-creds) applications-table {:name application-name})]
-    (update-in application [:metadata] #(into (sorted-map) (cheshire/parse-string % true)))))
+  (far/get-item (create-creds) applications-table {:name application-name}))
 
 (defn create-application
   "Creates the given application in store, unless it already exists."
@@ -93,17 +85,15 @@
 (defn get-application-metadata-item
   "Gets the metadata value corresponding to the given key for the given service. If either does not exist, 'nil' is returned."
   [application-name key]
-  (when-let [app (get-application application-name)]
-    (when-let [metadata (:metadata app)]
-      (when-let [value ((keyword key) metadata)]
-        {:value value}))))
+  (let [target (keyword key)]
+    (when-let [data (far/get-item (create-creds) applications-table {:name application-name} {:return [target]})]
+      {:value (target data)})))
 
 (defn update-application-metadata
   "Updates or creates a metadata property with the given key and value, for the given application. If the application doesn't exist 'nil' is returned."
   [application-name key value]
   (when-let [app (get-application application-name)]
-    (let [new-metadata (assoc (:metadata app) (keyword key) value)
-          new-app (assoc app :metadata (cheshire/generate-string new-metadata))]
+    (let [new-app (assoc app (keyword key) value)]
       (upsert-application new-app)
       {:value value})))
 
@@ -111,12 +101,9 @@
   "Removes the metadata item with the given key from the given application, if it exists."
   [application-name key]
   (when-let [app (get-application application-name)]
-    (let [kw (keyword key)
-          metadata (:metadata app)]
-      (when-not (nil? (kw metadata))
-        (let [new-metadata (dissoc metadata kw)
-              new-app (assoc app :metadata (cheshire/generate-string new-metadata))]
-          (upsert-application new-app))))))
+    (let [new-app (dissoc app (keyword key))]
+      (when (not= app new-app)
+        (upsert-application new-app)))))
 
 (defn delete-application
   "Removes the application"
@@ -142,10 +129,7 @@
 
 (defn get-environment
   [environment-name]
-  (when-let [environment (far/get-item (create-creds) environments-table {:name environment-name})]
-    (if-let [metadata (cheshire/parse-string (:metadata environment) true)]
-      (assoc environment :metadata (order-keys metadata))
-      environment)))
+  (far/get-item (create-creds) environments-table {:name environment-name}))
 
 (defn delete-environment
   "Remove the supplied environment"
@@ -154,10 +138,11 @@
 
 (defn create-environment
   "Creates a new environment associated with the new account-id, doesn't set create-repo to true, assumes the new environment will be a limpet environment"
-  [environment account-id]
-  (far/put-item (create-creds) environments-table {:name environment
-                                                   :metadata (cheshire/generate-string {:account-id account-id})})
-  (get-environment environment))
+  [environment-name account-id]
+  (let [environment {:name environment-name
+                     :account-id account-id}]
+    (far/put-item (create-creds) environments-table environment)
+    environment))
 
 (defn environments-table-healthcheck
   "Checks that we can talk to Dynamo and get a description of our environments tables."
@@ -167,3 +152,13 @@
     (catch Exception e
       (warn e "Exception while describing table for healthcheck")
       false)))
+
+(defn copy-applicaions
+  []
+  (doseq [{:keys [metadata name]} (far/scan (create-creds) :onix-applications)]
+    (far/put-item (create-creds) :lister-applications (merge (cheshire.core/parse-string metadata true) {:name name}))))
+
+(defn copy-environments
+  []
+  (doseq [{:keys [metadata name]} (far/scan (create-creds) :onix-environments)]
+    (far/put-item (create-creds) :lister-environments (merge (cheshire.core/parse-string metadata true) {:name name}))))
