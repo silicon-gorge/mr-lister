@@ -57,7 +57,8 @@
                                                                       :colour "red"}))
 
 (fact "that fetching an application which exists but has extra no properties works"
-      (get-application "dummy") => {:name "dummy"}
+      (get-application "dummy") => {:name "dummy"
+                                    :metadata {}}
       (provided
        (far/get-item anything applications-table {:name "dummy"}) => {:name "dummy"}))
 
