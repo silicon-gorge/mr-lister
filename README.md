@@ -1,4 +1,4 @@
-# Mr. Lister [![Build Status](https://travis-ci.org/mixradio/mr-lister.png)](https://travis-ci.org/mixradio/mr-lister)
+# Mr. Lister [![Build Status](https://travis-ci.org/silicon-gorge/mr-lister.png)](https://travis-ci.org/silicon-gorge/mr-lister)
 
 ## Introduction
 
